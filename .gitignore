@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+firebase/public/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.local.env
+
+# Logs
+*.log
+logs/
+debug.log
+npm-debug.log*
+
+# Lock files (giữ package.json, bỏ lock files)
+yarn.lock
+yarn-error.log
+package-lock.json
+
+# Editor / OS
+.vscode/
+.idea/
+desktop.ini
+jsconfig.json
+*.lnk
+Thumbs.db
+.DS_Store
+
+# TypeScript build
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# Uploads (user generated content)
+uploads/
+!uploads/.gitkeep
+
+# Cache
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+
+# Temporary files
+*.tmp
+*.temp
+.temp/

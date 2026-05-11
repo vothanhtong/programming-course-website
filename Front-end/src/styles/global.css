@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { 
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html { 
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    background-color: #0f172a;
+    color: #e2e8f0;
+    line-height: 1.6;
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  a { text-decoration: none; color: inherit; }
+  img { max-width: 100%; display: block; }
+  
+  /* Prevent horizontal scroll */
+  #root {
+    overflow-x: hidden;
+    width: 100%;
+  }
+}
+
+@layer components {
+  .container { 
+    @apply w-full mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: 1280px;
+  }
+  
+  .section { @apply py-12 sm:py-16 lg:py-20; }
+
+  .section-title {
+    @apply text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight mb-3;
+    color: #f1f5f9;
+  }
+
+  .section-subtitle {
+    @apply text-base sm:text-lg mb-8 sm:mb-12;
+    color: #94a3b8;
+  }
+
+  /* ── Buttons ─────────────────────────────── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-5 sm:px-7 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold border-none transition-all duration-200 cursor-pointer;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    @apply text-white hover:-translate-y-0.5;
+    box-shadow: 0 0 20px rgba(59,130,246,0.35);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 32px rgba(59,130,246,0.55);
+  }
+
+  .btn-gold {
+    background: linear-gradient(135deg, #F5D485, #C9A84C, #A07830);
+    @apply text-[#0f172a] font-bold hover:-translate-y-0.5;
+    box-shadow: 0 0 20px rgba(201,168,76,0.35);
+  }
+  .btn-gold:hover {
+    box-shadow: 0 0 32px rgba(201,168,76,0.55);
+  }
+
+  .btn-outline-light {
+    @apply bg-transparent text-white border-2 border-white/20 hover:border-[#3b82f6] hover:text-[#3b82f6] hover:bg-[#3b82f6]/10;
+  }
+
+  .btn-outline {
+    @apply bg-transparent text-[#3b82f6] border-2 border-[#3b82f6]/50 hover:bg-[#3b82f6] hover:text-white;
+  }
+
+  .btn-lg { @apply px-7 sm:px-9 py-3 sm:py-4 text-base sm:text-lg rounded-xl; }
+
+  /* ── Tags ────────────────────────────────── */
+  .tag {
+    @apply inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide;
+  }
+  .tag-blue   { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+  .tag-green  { background: rgba(34,197,94,0.12);  color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+  .tag-orange { background: rgba(249,115,22,0.12); color: #fb923c; border: 1px solid rgba(249,115,22,0.2); }
+  .tag-red    { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+  .tag-purple { background: rgba(139,92,246,0.12); color: #a78bfa; border: 1px solid rgba(139,92,246,0.2); }
+
+  /* ── Form ────────────────────────────────── */
+  .form-input {
+    @apply w-full px-4 py-2.5 rounded-lg text-base font-sans outline-none transition-all duration-200;
+    background: rgba(30,41,59,0.8);
+    border: 1.5px solid rgba(71,85,105,0.6);
+    color: #e2e8f0;
+  }
+  .form-input::placeholder { color: #475569; }
+  .form-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+  }
+
+  .form-label {
+    @apply block text-sm font-semibold mb-1.5;
+    color: #94a3b8;
+  }
+
+  /* ── Glass card ──────────────────────────── */
+  .glass-card {
+    background: rgba(15,23,42,0.7);
+    border: 1px solid rgba(59,130,246,0.15);
+    backdrop-filter: blur(12px);
+    @apply rounded-2xl;
+  }
+
+  /* ── Glow line ───────────────────────────── */
+  .glow-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #3b82f6, #8b5cf6, transparent);
+  }
+}
+
+@layer utilities {
+  .text-gold  { color: #C9A84C; }
+  .bg-gold    { background-color: #C9A84C; }
+  .border-gold { border-color: #C9A84C; }
+  .text-dark  { color: #0f172a; }
+  .bg-dark    { background-color: #0f172a; }
+
+  /* Neon glow text */
+  .text-glow-blue   { text-shadow: 0 0 20px rgba(59,130,246,0.7); }
+  .text-glow-purple { text-shadow: 0 0 20px rgba(139,92,246,0.7); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: #0f172a; }
+  ::-webkit-scrollbar-thumb { background: #1e3a5f; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+}
