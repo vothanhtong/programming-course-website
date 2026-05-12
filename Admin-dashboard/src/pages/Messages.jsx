@@ -74,7 +74,8 @@ const Messages = () => {
       title: 'Trạng thái',
       dataIndex: 'isRead',
       key: 'isRead',
-      width: 110,
+      width: 120,
+      align: 'center',
       render: (isRead) => (
         <Tag
           icon={isRead ? <CheckCircleOutlined /> : <ClockCircleOutlined />}
@@ -88,10 +89,10 @@ const Messages = () => {
       title: 'Tên',
       dataIndex: 'name',
       key: 'name',
-      width: 180,
+      width: 160,
       render: (name) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <UserOutlined style={{ color: '#60a5fa' }} />
+          <UserOutlined style={{ color: '#60a5fa', flexShrink: 0 }} />
           <span style={{ fontWeight: 500 }}>{name}</span>
         </div>
       ),
@@ -100,11 +101,16 @@ const Messages = () => {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
-      width: 220,
+      width: 200,
+      ellipsis: true,
       render: (email) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <MailOutlined style={{ color: '#34d399' }} />
-          <a href={`mailto:${email}`} style={{ color: '#60a5fa' }}>{email}</a>
+          <MailOutlined style={{ color: '#34d399', flexShrink: 0 }} />
+          <Tooltip title={email}>
+            <a href={`mailto:${email}`} style={{ color: '#60a5fa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {email}
+            </a>
+          </Tooltip>
         </div>
       ),
     },
@@ -112,10 +118,11 @@ const Messages = () => {
       title: 'Điện thoại',
       dataIndex: 'phone',
       key: 'phone',
-      width: 140,
+      width: 130,
+      align: 'center',
       render: (phone) => phone ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <PhoneOutlined style={{ color: '#fbbf24' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <PhoneOutlined style={{ color: '#fbbf24', flexShrink: 0 }} />
           <a href={`tel:${phone}`} style={{ color: '#60a5fa' }}>{phone}</a>
         </div>
       ) : <span style={{ color: '#64748b' }}>—</span>,
@@ -128,7 +135,7 @@ const Messages = () => {
       render: (text) => (
         <Tooltip title={text}>
           <span style={{ color: '#94a3b8' }}>
-            {text.length > 60 ? text.substring(0, 60) + '...' : text}
+            {text.length > 50 ? text.substring(0, 50) + '...' : text}
           </span>
         </Tooltip>
       ),
@@ -137,16 +144,22 @@ const Messages = () => {
       title: 'Thời gian',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: 160,
-      render: (date) => new Date(date).toLocaleString('vi-VN'),
+      width: 150,
+      align: 'center',
+      render: (date) => (
+        <span style={{ color: '#94a3b8', fontSize: 13 }}>
+          {new Date(date).toLocaleString('vi-VN')}
+        </span>
+      ),
     },
     {
       title: 'Thao tác',
       key: 'actions',
-      width: 120,
+      width: 110,
+      align: 'center',
       fixed: 'right',
       render: (_, record) => (
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
           <Button
             type="primary"
             size="small"
@@ -219,7 +232,7 @@ const Messages = () => {
           showSizeChanger: false,
           showTotal: (t) => `Tổng ${t} tin nhắn`,
         }}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1000 }}
         rowClassName={(record) => !record.isRead ? 'unread-row' : ''}
       />
 
