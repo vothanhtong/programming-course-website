@@ -1,20 +1,83 @@
-import React, { useEffect, useState } from 'react';
-import { Table, Button, Tag, Modal, message as antdMsg, Spin, Tooltip } from 'antd';
+import React, { useEffect, useState, useRef } from 'react';
+import { Table, Button, Tag, Modal, message as antdMsg, Tooltip, Input } from 'antd';
 import {
   MailOutlined, DeleteOutlined, EyeOutlined, PhoneOutlined,
   UserOutlined, ClockCircleOutlined, CheckCircleOutlined,
+  SendOutlined, MessageOutlined,
 } from '@ant-design/icons';
 import adminApi from '../api/adminApi';
 
+const { TextArea } = Input;
+
+// ── Chat bubble component ─────────────────────────────────
+const ChatBubble = ({ isAdmin, text, time, name }) => (
+  <div style={{
+    display: 'flex',
+    flexDirection: isAdmin ? 'row-reverse' : 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+    marginBottom: 16,
+  }}>
+    {/* Avatar */}
+    <div style={{
+      width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: 13, fontWeight: 700, color: '#fff',
+      background: isAdmin
+        ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
+        : 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+    }}>
+      {isAdmin ? 'A' : (name?.[0] || 'U').toUpperCase()}
+    </div>
+
+    {/* Bubble */}
+    <div style={{ maxWidth: '70%' }}>
+      <div style={{
+        fontSize: 11, color: '#64748b', marginBottom: 4,
+        textAlign: isAdmin ? 'right' : 'left',
+      }}>
+        {isAdmin ? 'Admin' : name}
+      </div>
+      <div style={{
+        padding: '10px 14px',
+        borderRadius: isAdmin ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
+        background: isAdmin
+          ? 'linear-gradient(135deg, rgba(59,130,246,0.25), rgba(29,78,216,0.2))'
+          : 'rgba(30,41,59,0.8)',
+        border: isAdmin
+          ? '1px solid rgba(59,130,246,0.35)'
+          : '1px solid rgba(148,163,184,0.15)',
+        color: '#e2e8f0',
+        fontSize: 14,
+        lineHeight: 1.6,
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
+      }}>
+        {text}
+      </div>
+      <div style={{
+        fontSize: 11, color: '#475569', marginTop: 4,
+        textAlign: isAdmin ? 'right' : 'left',
+      }}>
+        {time ? new Date(time).toLocaleString('vi-VN') : ''}
+      </div>
+    </div>
+  </div>
+);
+
+// ── Main component ────────────────────────────────────────
 const Messages = () => {
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading]   = useState(false);
-  const [total, setTotal]       = useState(0);
-  const [page, setPage]         = useState(1);
-  const [perPage]               = useState(20);
-  const [filter, setFilter]     = useState('all'); // all | unread | read
+  const [messages, setMessages]   = useState([]);
+  const [loading, setLoading]     = useState(false);
+  const [total, setTotal]         = useState(0);
+  const [page, setPage]           = useState(1);
+  const [perPage]                 = useState(20);
+  const [filter, setFilter]       = useState('all');
+  const [chatModal, setChatModal] = useState(false);
   const [selectedMsg, setSelectedMsg] = useState(null);
-  const [viewModal, setViewModal]     = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [replying, setReplying]   = useState(false);
+  const chatEndRef = useRef(null);
 
   const fetchMessages = async () => {
     setLoading(true);
@@ -25,28 +88,47 @@ const Messages = () => {
       const res = await adminApi.getMessages(params);
       setMessages(res.messages || []);
       setTotal(res.total || 0);
-    } catch (err) {
+    } catch {
       antdMsg.error('Không thể tải tin nhắn');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchMessages();
-  }, [page, filter]);
+  useEffect(() => { fetchMessages(); }, [page, filter]);
 
-  const handleView = async (record) => {
+  // Scroll to bottom khi mở chat
+  useEffect(() => {
+    if (chatModal) {
+      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    }
+  }, [chatModal, selectedMsg]);
+
+  const handleOpenChat = async (record) => {
     setSelectedMsg(record);
-    setViewModal(true);
-    // Đánh dấu đã đọc nếu chưa đọc
+    setReplyText(record.adminReply || '');
+    setChatModal(true);
     if (!record.isRead) {
       try {
         await adminApi.markMessageRead(record._id);
-        fetchMessages(); // Refresh để cập nhật trạng thái
-      } catch (err) {
-        console.error('Không thể đánh dấu đã đọc:', err);
-      }
+        fetchMessages();
+      } catch {}
+    }
+  };
+
+  const handleSendReply = async () => {
+    if (!replyText.trim()) return;
+    setReplying(true);
+    try {
+      const res = await adminApi.replyMessage(selectedMsg._id, replyText.trim());
+      antdMsg.success('Đã gửi trả lời');
+      setSelectedMsg(res.data);
+      setReplyText('');
+      fetchMessages();
+    } catch (err) {
+      antdMsg.error(err?.message || 'Không thể gửi trả lời');
+    } finally {
+      setReplying(false);
     }
   };
 
@@ -54,15 +136,15 @@ const Messages = () => {
     Modal.confirm({
       title: 'Xác nhận xóa',
       content: 'Bạn có chắc muốn xóa tin nhắn này?',
-      okText: 'Xóa',
-      cancelText: 'Hủy',
+      okText: 'Xóa', cancelText: 'Hủy',
       okButtonProps: { danger: true },
       onOk: async () => {
         try {
           await adminApi.deleteMessage(id);
           antdMsg.success('Đã xóa tin nhắn');
+          setChatModal(false);
           fetchMessages();
-        } catch (err) {
+        } catch {
           antdMsg.error('Không thể xóa tin nhắn');
         }
       },
@@ -141,6 +223,16 @@ const Messages = () => {
       ),
     },
     {
+      title: 'Trả lời',
+      dataIndex: 'adminReply',
+      key: 'adminReply',
+      width: 100,
+      align: 'center',
+      render: (reply) => reply
+        ? <Tag color="blue" icon={<MessageOutlined />}>Đã reply</Tag>
+        : <Tag color="default">Chưa reply</Tag>,
+    },
+    {
       title: 'Thời gian',
       dataIndex: 'createdAt',
       key: 'createdAt',
@@ -164,13 +256,12 @@ const Messages = () => {
             type="primary"
             size="small"
             icon={<EyeOutlined />}
-            onClick={() => handleView(record)}
+            onClick={() => handleOpenChat(record)}
           >
-            Xem
+            Chat
           </Button>
           <Button
-            danger
-            size="small"
+            danger size="small"
             icon={<DeleteOutlined />}
             onClick={() => handleDelete(record._id)}
           />
@@ -182,12 +273,7 @@ const Messages = () => {
   return (
     <div>
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 24,
-      }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 26, fontWeight: 800, color: '#e2e8f0', margin: 0 }}>
             Tin nhắn tư vấn
@@ -197,24 +283,19 @@ const Messages = () => {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <Button
-            type={filter === 'all' ? 'primary' : 'default'}
-            onClick={() => { setFilter('all'); setPage(1); }}
-          >
-            Tất cả
-          </Button>
-          <Button
-            type={filter === 'unread' ? 'primary' : 'default'}
-            onClick={() => { setFilter('unread'); setPage(1); }}
-          >
-            Chưa đọc
-          </Button>
-          <Button
-            type={filter === 'read' ? 'primary' : 'default'}
-            onClick={() => { setFilter('read'); setPage(1); }}
-          >
-            Đã đọc
-          </Button>
+          {[
+            { key: 'all',    label: 'Tất cả' },
+            { key: 'unread', label: 'Chưa đọc' },
+            { key: 'read',   label: 'Đã đọc' },
+          ].map(f => (
+            <Button
+              key={f.key}
+              type={filter === f.key ? 'primary' : 'default'}
+              onClick={() => { setFilter(f.key); setPage(1); }}
+            >
+              {f.label}
+            </Button>
+          ))}
         </div>
       </div>
 
@@ -232,89 +313,144 @@ const Messages = () => {
           showSizeChanger: false,
           showTotal: (t) => `Tổng ${t} tin nhắn`,
         }}
-        scroll={{ x: 1000 }}
+        scroll={{ x: 1100 }}
         rowClassName={(record) => !record.isRead ? 'unread-row' : ''}
       />
 
-      {/* View Modal */}
+      {/* Chat Modal */}
       <Modal
         title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <MailOutlined style={{ fontSize: 20, color: '#60a5fa' }} />
-            <span>Chi tiết tin nhắn</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: '50%',
+              background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#fff', fontWeight: 700, fontSize: 14,
+            }}>
+              {selectedMsg?.name?.[0]?.toUpperCase() || 'U'}
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: '#e2e8f0' }}>
+                {selectedMsg?.name}
+              </div>
+              <div style={{ fontSize: 12, color: '#64748b' }}>
+                {selectedMsg?.email}
+                {selectedMsg?.phone ? ` · ${selectedMsg.phone}` : ''}
+              </div>
+            </div>
           </div>
         }
-        open={viewModal}
-        onCancel={() => setViewModal(false)}
-        footer={[
-          <Button key="close" onClick={() => setViewModal(false)}>
-            Đóng
-          </Button>,
-          <Button
-            key="delete"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => {
-              setViewModal(false);
-              handleDelete(selectedMsg._id);
-            }}
-          >
-            Xóa
-          </Button>,
-        ]}
+        open={chatModal}
+        onCancel={() => { setChatModal(false); setReplyText(''); }}
+        footer={null}
         width={600}
+        styles={{
+          body: { padding: 0 },
+          content: {
+            background: '#0f172a',
+            border: '1px solid rgba(59,130,246,0.2)',
+          },
+          header: {
+            background: '#0f172a',
+            borderBottom: '1px solid rgba(59,130,246,0.15)',
+            padding: '16px 20px',
+          },
+        }}
       >
         {selectedMsg && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div>
-              <div style={{ color: '#64748b', fontSize: 13, marginBottom: 4 }}>Tên khách hàng</div>
-              <div style={{ fontSize: 16, fontWeight: 600, color: '#e2e8f0' }}>
-                {selectedMsg.name}
+          <div style={{ display: 'flex', flexDirection: 'column', height: 500 }}>
+
+            {/* Chat area */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '20px 20px 8px',
+              background: 'rgba(2,8,23,0.4)',
+            }}>
+              {/* Tin nhắn của user */}
+              <ChatBubble
+                isAdmin={false}
+                text={selectedMsg.message}
+                time={selectedMsg.createdAt}
+                name={selectedMsg.name}
+              />
+
+              {/* Reply của admin (nếu có) */}
+              {selectedMsg.adminReply && (
+                <ChatBubble
+                  isAdmin={true}
+                  text={selectedMsg.adminReply}
+                  time={selectedMsg.repliedAt}
+                  name="Admin"
+                />
+              )}
+
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Divider */}
+            <div style={{ borderTop: '1px solid rgba(59,130,246,0.15)' }} />
+
+            {/* Reply input */}
+            <div style={{ padding: '14px 16px', background: '#0f172a' }}>
+              {selectedMsg.adminReply && (
+                <div style={{
+                  fontSize: 12, color: '#fbbf24', marginBottom: 8,
+                  display: 'flex', alignItems: 'center', gap: 6,
+                }}>
+                  <MessageOutlined />
+                  Đã trả lời lúc {new Date(selectedMsg.repliedAt).toLocaleString('vi-VN')} — bạn có thể gửi lại để cập nhật
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+                <TextArea
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Nhập nội dung trả lời..."
+                  autoSize={{ minRows: 2, maxRows: 5 }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSendReply();
+                  }}
+                  style={{
+                    flex: 1,
+                    background: 'rgba(30,41,59,0.8)',
+                    border: '1px solid rgba(59,130,246,0.25)',
+                    color: '#e2e8f0',
+                    borderRadius: 10,
+                    resize: 'none',
+                  }}
+                />
+                <Button
+                  type="primary"
+                  icon={<SendOutlined />}
+                  loading={replying}
+                  onClick={handleSendReply}
+                  disabled={!replyText.trim()}
+                  style={{ height: 'auto', padding: '8px 16px', borderRadius: 10 }}
+                >
+                  Gửi
+                </Button>
+              </div>
+              <div style={{ fontSize: 11, color: '#475569', marginTop: 6 }}>
+                Ctrl + Enter để gửi nhanh
               </div>
             </div>
-            <div>
-              <div style={{ color: '#64748b', fontSize: 13, marginBottom: 4 }}>Email</div>
-              <a href={`mailto:${selectedMsg.email}`} style={{ fontSize: 15, color: '#60a5fa' }}>
-                {selectedMsg.email}
-              </a>
-            </div>
-            {selectedMsg.phone && (
-              <div>
-                <div style={{ color: '#64748b', fontSize: 13, marginBottom: 4 }}>Điện thoại</div>
-                <a href={`tel:${selectedMsg.phone}`} style={{ fontSize: 15, color: '#60a5fa' }}>
-                  {selectedMsg.phone}
-                </a>
-              </div>
-            )}
-            <div>
-              <div style={{ color: '#64748b', fontSize: 13, marginBottom: 4 }}>Nội dung</div>
-              <div style={{
-                padding: 16,
-                background: 'rgba(15,23,42,0.5)',
-                border: '1px solid rgba(59,130,246,0.2)',
-                borderRadius: 8,
-                color: '#cbd5e1',
-                fontSize: 15,
-                lineHeight: 1.6,
-                whiteSpace: 'pre-wrap',
-              }}>
-                {selectedMsg.message}
-              </div>
-            </div>
-            <div>
-              <div style={{ color: '#64748b', fontSize: 13, marginBottom: 4 }}>Thời gian gửi</div>
-              <div style={{ fontSize: 15, color: '#94a3b8' }}>
-                {new Date(selectedMsg.createdAt).toLocaleString('vi-VN')}
-              </div>
-            </div>
-            <div>
-              <div style={{ color: '#64748b', fontSize: 13, marginBottom: 4 }}>Trạng thái</div>
-              <Tag
-                icon={selectedMsg.isRead ? <CheckCircleOutlined /> : <ClockCircleOutlined />}
-                color={selectedMsg.isRead ? 'success' : 'warning'}
+
+            {/* Footer actions */}
+            <div style={{
+              padding: '10px 16px',
+              borderTop: '1px solid rgba(59,130,246,0.1)',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              background: '#0f172a',
+            }}>
+              <Button
+                danger size="small"
+                icon={<DeleteOutlined />}
+                onClick={() => handleDelete(selectedMsg._id)}
               >
-                {selectedMsg.isRead ? 'Đã đọc' : 'Chưa đọc'}
-              </Tag>
+                Xóa tin nhắn
+              </Button>
             </div>
           </div>
         )}

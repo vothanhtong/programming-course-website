@@ -138,10 +138,18 @@ export const postEnroll = async (req: Request, res: Response): Promise<void> => 
     const course = await CourseModel.findById(courseId).select('isPublished isFree price salePrice').lean();
     if (!course?.isPublished) { res.status(404).json({ message: 'Khóa học không tồn tại' }); return; }
 
-    // Kiểm tra duplicate enrollment theo email + courseId
+    // Nếu student đã đăng nhập → dùng email tài khoản để đảm bảo match chính xác
+    const studentId = getStudentId(req) as string | undefined;
+    let resolvedEmail = studentEmail.trim().toLowerCase();
+    if (studentId && isValidId(studentId)) {
+      const student = await StudentModel.findById(studentId).select('email').lean();
+      if (student?.email) resolvedEmail = student.email;
+    }
+
+    // Kiểm tra duplicate enrollment
     const existing = await EnrollmentModel.findOne({
       courseId,
-      studentEmail: studentEmail.trim().toLowerCase(),
+      studentEmail: resolvedEmail,
     }).lean();
     if (existing) {
       res.status(409).json({ message: 'Bạn đã đăng ký khóa học này rồi' }); return;
@@ -153,7 +161,7 @@ export const postEnroll = async (req: Request, res: Response): Promise<void> => 
     const enrollment = await EnrollmentModel.create({
       courseId,
       studentName:   studentName.trim(),
-      studentEmail:  studentEmail.trim().toLowerCase(),
+      studentEmail:  resolvedEmail,
       studentPhone:  studentPhone?.trim() || '',
       paymentMethod: paymentMethod || 'other',
       amount,
@@ -161,18 +169,35 @@ export const postEnroll = async (req: Request, res: Response): Promise<void> => 
       paymentStatus: isFree ? 'paid' : 'pending',
     });
 
-    // Chỉ tăng enrollmentCount khi miễn phí (paid ngay) hoặc khi admin confirm
     if (isFree) {
+      // Khóa học miễn phí → cấp ngay
       await CourseModel.updateOne({ _id: courseId }, { $inc: { enrollmentCount: 1 } });
-    }
-
-    // Cập nhật enrolledCourses nếu student đã đăng nhập và khóa học miễn phí
-    const studentId = getStudentId(req) as string | undefined;
-    if (studentId && isValidId(studentId) && isFree) {
-      await StudentModel.updateOne(
-        { _id: studentId },
-        { $addToSet: { enrolledCourses: courseId } }
-      );
+      if (studentId && isValidId(studentId)) {
+        await StudentModel.updateOne(
+          { _id: studentId },
+          { $addToSet: { enrolledCourses: courseId } }
+        );
+      } else {
+        // Không đăng nhập → match bằng email
+        await StudentModel.updateOne(
+          { email: resolvedEmail },
+          { $addToSet: { enrolledCourses: courseId } }
+        );
+      }
+    } else {
+      // Khóa học trả phí → thêm vào enrolledCourses ngay để user thấy "đang chờ xác nhận"
+      // Admin confirm paid sẽ không cần update lại vì đã có rồi
+      if (studentId && isValidId(studentId)) {
+        await StudentModel.updateOne(
+          { _id: studentId },
+          { $addToSet: { enrolledCourses: courseId } }
+        );
+      } else {
+        await StudentModel.updateOne(
+          { email: resolvedEmail },
+          { $addToSet: { enrolledCourses: courseId } }
+        );
+      }
     }
 
     res.status(201).json({ message: 'Đăng ký thành công! Chúng tôi sẽ liên hệ với bạn sớm.', enrollmentId: enrollment._id });

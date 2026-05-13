@@ -7,7 +7,8 @@ describe('resetPasswordTemplate', () => {
     const html = resetPasswordTemplate(url, 'Nguyễn Văn A');
     expect(html).toContain(url);
     expect(html).toContain('Nguyễn Văn A');
-    expect(html).toContain('Đặt lại mật khẩu');
+    // Template dùng HTML entities nên kiểm tra entity thay vì plain text
+    expect(html).toContain('&#272;&#7863;t l&#7841;i m&#7853;t kh&#7849;u');
   });
 
   it('hoạt động không có fullName', async () => {

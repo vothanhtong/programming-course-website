@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import courseApi from '../../api/courseApi';
+import { useAuth } from '../../context/AuthContext';
 import type { Course, EnrollFormData } from '../../types';
 
 interface Props { open: boolean; onClose: () => void; course: Course; }
@@ -10,14 +11,31 @@ const initialForm: EnrollFormData = {
 };
 
 const EnrollModal: React.FC<Props> = ({ open, onClose, course }) => {
+  const { student } = useAuth();
   const [form, setForm]       = useState<EnrollFormData>({ ...initialForm, courseId: course._id });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError]     = useState('');
 
+  // Tự điền thông tin từ tài khoản đã đăng nhập
+  useEffect(() => {
+    if (open && student) {
+      setForm(f => ({
+        ...f,
+        courseId:     course._id,
+        studentName:  student.fullName  || f.studentName,
+        studentEmail: student.email     || f.studentEmail,
+        studentPhone: student.phone     || f.studentPhone,
+      }));
+    } else if (open) {
+      setForm({ ...initialForm, courseId: course._id });
+    }
+  }, [open, student, course._id]);
+
   if (!open) return null;
 
   const price = course.salePrice != null ? course.salePrice : course.price;
+  const isLoggedIn = !!student;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -69,8 +87,18 @@ const EnrollModal: React.FC<Props> = ({ open, onClose, course }) => {
           <div className="p-12 text-center">
             <div className="text-6xl mb-4">🎉</div>
             <h3 className="text-2xl font-bold mb-3" style={{ color: '#f1f5f9' }}>Đăng ký thành công!</h3>
-            <p className="mb-2" style={{ color: '#64748b' }}>Cảm ơn bạn đã đăng ký <strong style={{ color: '#60a5fa' }}>{course.title}</strong>.</p>
-            <p className="mb-6" style={{ color: '#64748b' }}>Chúng tôi sẽ liên hệ trong vòng 24 giờ.</p>
+            <p className="mb-2" style={{ color: '#64748b' }}>
+              Cảm ơn bạn đã đăng ký <strong style={{ color: '#60a5fa' }}>{course.title}</strong>.
+            </p>
+            {course.isFree ? (
+              <p className="mb-6" style={{ color: '#34d399' }}>
+                Khóa học đã được thêm vào tài khoản của bạn!
+              </p>
+            ) : (
+              <p className="mb-6" style={{ color: '#64748b' }}>
+                Chúng tôi sẽ liên hệ xác nhận thanh toán trong vòng 24 giờ.
+              </p>
+            )}
             <button className="btn btn-primary" onClick={handleClose}>Đóng</button>
           </div>
         ) : (
@@ -95,26 +123,48 @@ const EnrollModal: React.FC<Props> = ({ open, onClose, course }) => {
                   </>
                 )}
               </div>
+              {/* Badge đã đăng nhập */}
+              {isLoggedIn && (
+                <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs"
+                  style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)', color: '#34d399' }}>
+                  ✓ Đã đăng nhập — thông tin được điền tự động
+                </div>
+              )}
             </div>
 
             {/* Form */}
             <form className="px-8 py-6 flex flex-col gap-4" onSubmit={handleSubmit}>
               <div>
                 <label className="form-label">Họ và tên <span style={{ color: '#f87171' }}>*</span></label>
-                <input className="form-input" type="text" name="studentName" value={form.studentName} onChange={handleChange} placeholder="Nguyễn Văn A" />
+                <input className="form-input" type="text" name="studentName"
+                  value={form.studentName} onChange={handleChange} placeholder="Nguyễn Văn A" />
               </div>
               <div>
                 <label className="form-label">Email <span style={{ color: '#f87171' }}>*</span></label>
-                <input className="form-input" type="email" name="studentEmail" value={form.studentEmail} onChange={handleChange} placeholder="email@example.com" />
+                <input
+                  className="form-input" type="email" name="studentEmail"
+                  value={form.studentEmail} onChange={handleChange}
+                  placeholder="email@example.com"
+                  // Nếu đã đăng nhập → lock email để đảm bảo match với tài khoản
+                  readOnly={isLoggedIn}
+                  style={isLoggedIn ? { opacity: 0.7, cursor: 'not-allowed' } : {}}
+                />
+                {isLoggedIn && (
+                  <p className="text-xs mt-1" style={{ color: '#475569' }}>
+                    Email tài khoản — không thể thay đổi để đảm bảo khóa học được cấp đúng
+                  </p>
+                )}
               </div>
               <div>
                 <label className="form-label">Số điện thoại</label>
-                <input className="form-input" type="tel" name="studentPhone" value={form.studentPhone} onChange={handleChange} placeholder="0912 345 678" />
+                <input className="form-input" type="tel" name="studentPhone"
+                  value={form.studentPhone} onChange={handleChange} placeholder="0912 345 678" />
               </div>
               {!course.isFree && (
                 <div>
                   <label className="form-label">Phương thức thanh toán</label>
-                  <select className="form-input" name="paymentMethod" value={form.paymentMethod} onChange={handleChange}>
+                  <select className="form-input" name="paymentMethod"
+                    value={form.paymentMethod} onChange={handleChange}>
                     <option value="bank_transfer">Chuyển khoản ngân hàng</option>
                     <option value="momo">Ví MoMo</option>
                     <option value="vnpay">VNPay</option>
@@ -124,7 +174,9 @@ const EnrollModal: React.FC<Props> = ({ open, onClose, course }) => {
               )}
               <div>
                 <label className="form-label">Ghi chú</label>
-                <textarea className="form-input resize-y" name="note" value={form.note} onChange={handleChange} placeholder="Câu hỏi hoặc yêu cầu đặc biệt..." rows={3} />
+                <textarea className="form-input resize-y" name="note"
+                  value={form.note} onChange={handleChange}
+                  placeholder="Câu hỏi hoặc yêu cầu đặc biệt..." rows={3} />
               </div>
 
               {error && (

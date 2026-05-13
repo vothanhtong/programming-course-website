@@ -40,7 +40,10 @@ describe('register - validation', () => {
 
   it('409 khi email đã tồn tại', async () => {
     vi.doMock('../models/student.model', () => ({
-      default: { findOne: vi.fn().mockResolvedValue({ _id: 'x', email: 'a@b.com' }), create: vi.fn() },
+      default: {
+        findOne: vi.fn().mockReturnValue({ lean: vi.fn().mockResolvedValue({ _id: 'x', email: 'a@b.com' }) }),
+        create: vi.fn(),
+      },
     }));
     vi.doMock('../utils/mailer', () => ({ sendMail: vi.fn(), resetPasswordTemplate: vi.fn() }));
     const { register } = await import('./auth.controller');
@@ -154,11 +157,18 @@ describe('resetPassword - validation', () => {
   });
 
   it('400 khi token hết hạn', async () => {
-    vi.doMock('../models/student.model', () => ({ default: { findOne: vi.fn().mockResolvedValue(null) } }));
+    vi.doMock('../models/student.model', () => ({
+      default: {
+        // findOne không dùng .lean() trong resetPassword → mock trả về null trực tiếp
+        findOne: vi.fn().mockResolvedValue(null),
+      },
+    }));
     vi.doMock('../utils/mailer', () => ({ sendMail: vi.fn(), resetPasswordTemplate: vi.fn() }));
     const { resetPassword } = await import('./auth.controller');
     const res = mockRes();
-    await resetPassword(mockReq({ body: { token: 'expired', newPassword: 'newpass123' } }), res);
+    // Token đúng format hex 64 chars (chỉ a-f) nhưng không tồn tại trong DB
+    const fakeToken = 'abcdef1234567890'.repeat(4);
+    await resetPassword(mockReq({ body: { token: fakeToken, newPassword: 'newpass123' } }), res);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ message: 'Token không hợp lệ hoặc đã hết hạn' });
   });

@@ -15,4 +15,7 @@ const msgLimiter = rateLimit({
 // Public
 router.post('/', msgLimiter, messageController.postMessage);
 
+// Public: student lấy lịch sử chat theo email (dùng polling)
+router.get('/by-email', messageController.getMessagesByEmail);
+
 export default router;

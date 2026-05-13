@@ -3,11 +3,14 @@ import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { studentAuthentication } from './studentAuth.middleware';
 
-const SECRET = 'test-secret';
+const SECRET = 'test-student-secret';
 const mockRes = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn().mockReturnThis() } as unknown as Response);
 const mockNext: NextFunction = vi.fn();
 
-beforeEach(() => { process.env.JWT_SECRET_KEY = SECRET; vi.clearAllMocks(); });
+beforeEach(() => {
+  process.env.JWT_STUDENT_SECRET = SECRET;
+  vi.clearAllMocks();
+});
 
 describe('studentAuthentication middleware', () => {
   it('401 khi không có token', () => {

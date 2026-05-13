@@ -3,16 +3,19 @@ import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { adminAuthentication } from './adminAuth.middleware';
 
-const SECRET = 'test-secret';
+const SECRET = 'test-admin-secret';
 const mockRes = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn().mockReturnThis() } as unknown as Response);
 const mockNext: NextFunction = vi.fn();
 
-beforeEach(() => { process.env.JWT_SECRET_KEY = SECRET; vi.clearAllMocks(); });
+beforeEach(() => {
+  process.env.JWT_ADMIN_SECRET = SECRET;
+  vi.clearAllMocks();
+});
 
 describe('adminAuthentication middleware', () => {
   it('401 khi không có token', () => {
     adminAuthentication({ headers: {} } as Request, mockRes(), mockNext);
-    expect(mockRes().status).not.toHaveBeenCalled(); // called on fresh mockRes
+    expect(mockRes().status).not.toHaveBeenCalled();
   });
 
   it('401 khi không có token - kiểm tra response', () => {

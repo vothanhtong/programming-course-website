@@ -64,6 +64,7 @@ router.delete('/students/:id/courses/:courseId',    adminController.adminRevokeC
 router.get   ('/messages',              messageController.adminGetMessages);
 router.get   ('/messages/unread-count', messageController.adminUnreadCount);
 router.put   ('/messages/:id/read',     messageController.adminMarkRead);
+router.put   ('/messages/:id/reply',    messageController.adminReplyMessage);
 router.delete('/messages/:id',          messageController.adminDeleteMessage);
 
 export default router;

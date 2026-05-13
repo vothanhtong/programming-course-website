@@ -67,6 +67,7 @@ const adminApi = {
   getMessages:     (params) => axiosClient.get(`${BASE}/messages`, { params }),
   getUnreadCount:  ()       => axiosClient.get(`${BASE}/messages/unread-count`),
   markMessageRead: (id)     => axiosClient.put(`${BASE}/messages/${id}/read`),
+  replyMessage:    (id, reply) => axiosClient.put(`${BASE}/messages/${id}/reply`, { reply }),
   deleteMessage:   (id)     => axiosClient.delete(`${BASE}/messages/${id}`),
 };
 
