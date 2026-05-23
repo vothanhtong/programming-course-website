@@ -57,16 +57,19 @@ const EnrollModal: React.FC<Props> = ({ open, onClose, course }) => {
   };
 
   const handleClose = () => {
-    setSuccess(false); setError('');
+    // Reset all state to initial values
+    setSuccess(false);
+    setError('');
+    setLoading(false);
     setForm({ ...initialForm, courseId: course._id });
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-5"
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 sm:p-5"
       style={{ background: 'rgba(2,8,23,0.85)', backdropFilter: 'blur(8px)' }}
       onClick={handleClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto relative rounded-2xl"
+      <div className="w-[95%] sm:w-full max-w-lg max-h-[90vh] overflow-y-auto overscroll-contain relative rounded-2xl"
         style={{
           background: 'rgba(15,23,42,0.95)',
           border: '1px solid rgba(59,130,246,0.25)',

@@ -1,13 +1,10 @@
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // ── Static data (outside component to avoid re-creation on render) ──
 
-const stats = [
-  { value: '10,000+', label: 'Học viên' },
-  { value: '50+',     label: 'Khóa học' },
-  { value: '4.9★',   label: 'Đánh giá' },
-  { value: '95%',     label: 'Hài lòng' },
-];
+// Use translation for stats inside component
+// const stats = [ ... ]
 
 const codeSnippet = `// Bắt đầu hành trình của bạn
 const dream = "Lập trình viên";
@@ -84,15 +81,19 @@ const statValueStyle: React.CSSProperties = {
 // ── Component ──
 
 const Hero: React.FC = () => {
+  const { t } = useTranslation();
   const scrollTo = useCallback((id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
   return (
     <section
-      className="min-h-screen flex items-center pt-24 pb-16 relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #020817 0%, #0f172a 60%, #0d1526 100%)' }}
+      className="min-h-screen flex items-center pt-24 pb-16 relative overflow-hidden bg-slate-50 dark:bg-transparent"
+      style={{ 
+        // Use inline style only for dark mode gradient via CSS var or rely on a wrapper, but we can just use tailwind classes
+      }}
     >
+      <div className="absolute inset-0 dark:bg-dark-gradient" />
       {/* Tech grid background */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -141,39 +142,43 @@ const Hero: React.FC = () => {
               }}
             >
               <span className="w-2 h-2 rounded-full bg-[#3b82f6] animate-pulse" />
-              🚀 Nền tảng học lập trình uy tín tại Việt Nam
+              {t('hero.badge')}
             </div>
 
-            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight text-white mb-5">
-              Học dễ hiểu,{' '}
-              <span style={gradientTextStyle}>Đi xa cùng CODE</span>
+            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight text-slate-900 dark:text-white mb-5 relative z-10">
+              {t('hero.title')},{' '}
+              <span style={gradientTextStyle}>{t('hero.title_highlight')}</span>
             </h1>
 
-            <p className="text-lg leading-relaxed mb-8 max-w-lg" style={{ color: '#94a3b8' }}>
-              Học lập trình từ zero đến hero với các khóa học thực chiến, ứng dụng thực tế.
-              Được thiết kế bởi các chuyên gia có kinh nghiệm tại các công ty công nghệ hàng đầu.
+            <p className="text-lg leading-relaxed mb-8 max-w-lg text-slate-600 dark:text-slate-400 relative z-10">
+              {t('hero.desc')}
             </p>
 
-            <div className="flex flex-wrap gap-4 mb-12">
+            <div className="flex flex-wrap gap-4 mb-12 relative z-10">
               <button className="btn btn-primary btn-lg" onClick={() => scrollTo('courses')}>
-                🎯 Khám phá khóa học
+                🎯 {t('hero.start_learning')}
               </button>
               <button className="btn btn-outline-light btn-lg" onClick={() => scrollTo('about')}>
-                ▶ Xem giới thiệu
+                ▶ {t('hero.view_roadmap')}
               </button>
             </div>
 
             {/* Stats */}
             <div
-              className="flex flex-wrap gap-8 pt-8"
+              className="flex flex-wrap gap-8 pt-8 relative z-10"
               style={{ borderTop: '1px solid rgba(59,130,246,0.2)' }}
             >
-              {stats.map((s) => (
+              {[
+                { value: '10,000+', label: t('hero.students') },
+                { value: '50+',     label: t('hero.lessons') },
+                { value: '4.9★',    label: t('hero.rating') },
+                { value: '95%',     label: 'Satisfaction' },
+              ].map((s) => (
                 <div key={s.label}>
                   <div className="text-2xl font-extrabold" style={statValueStyle}>
                     {s.value}
                   </div>
-                  <div className="text-sm font-medium mt-0.5" style={{ color: '#64748b' }}>
+                  <div className="text-sm font-medium mt-0.5 text-slate-500 dark:text-slate-400">
                     {s.label}
                   </div>
                 </div>

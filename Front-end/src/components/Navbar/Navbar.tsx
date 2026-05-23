@@ -2,20 +2,25 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Logo from './Logo';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../../contexts/ThemeContext';
 
-const navLinks = [
-  { label: 'Khóa học',     id: 'courses' },
-  { label: 'Về chúng tôi', id: 'about' },
-  { label: 'Học viên',     id: 'testimonials' },
-  { label: 'Liên hệ',      id: 'contact' },
-];
-
+// navLinks will be defined inside the component to use translations
 const Navbar: React.FC = () => {
   const { student, logout } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const { theme, toggleTheme } = useTheme();
+  
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  const navLinks = [
+    { label: t('nav.courses'), id: 'courses' },
+    { label: t('nav.about'),   id: 'about' },
+    { label: t('nav.contact'), id: 'contact' },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -58,8 +63,8 @@ const Navbar: React.FC = () => {
         boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.4)' : 'none',
       }}
     >
-      <div className="container flex items-center gap-8">
-        <a href="/" aria-label="High Sky" className="flex-shrink-0">
+      <div className="container flex items-center gap-4 md:gap-8">
+        <a href="/" aria-label="Khóa Lập Trình" className="flex-shrink-0">
           <Logo variant="light" size="sm" />
         </a>
 
@@ -121,7 +126,16 @@ const Navbar: React.FC = () => {
                     👤 Hồ sơ của tôi
                   </button>
                   <button
-                    onClick={() => { navigate('/profile'); setUserMenuOpen(false); }}
+                    onClick={() => { navigate('/dashboard'); setUserMenuOpen(false); }}
+                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm bg-transparent border-none cursor-pointer transition-all text-left"
+                    style={{ color: '#94a3b8' }}
+                    onMouseEnter={e => { (e.currentTarget).style.background = 'rgba(59,130,246,0.1)'; (e.currentTarget).style.color = '#e2e8f0'; }}
+                    onMouseLeave={e => { (e.currentTarget).style.background = 'transparent'; (e.currentTarget).style.color = '#94a3b8'; }}
+                  >
+                    📊 Dashboard
+                  </button>
+                  <button
+                    onClick={() => { navigate('/my-courses'); setUserMenuOpen(false); }}
                     className="w-full flex items-center gap-2.5 px-4 py-3 text-sm bg-transparent border-none cursor-pointer transition-all text-left"
                     style={{ color: '#94a3b8' }}
                     onMouseEnter={e => { (e.currentTarget).style.background = 'rgba(59,130,246,0.1)'; (e.currentTarget).style.color = '#e2e8f0'; }}
@@ -151,7 +165,7 @@ const Navbar: React.FC = () => {
                 onMouseEnter={e => { (e.currentTarget).style.color = '#60a5fa'; }}
                 onMouseLeave={e => { (e.currentTarget).style.color = '#94a3b8'; }}
               >
-                Đăng nhập
+                {t('nav.login')}
               </button>
               <button
                 onClick={() => navigate('/register')}
@@ -164,13 +178,31 @@ const Navbar: React.FC = () => {
                 onMouseEnter={e => { (e.currentTarget).style.background = 'rgba(59,130,246,0.1)'; }}
                 onMouseLeave={e => { (e.currentTarget).style.background = 'transparent'; }}
               >
-                Đăng ký
+                {t('nav.register')}
               </button>
               <button className="btn btn-primary" onClick={() => scrollTo('courses')}>
-                Bắt đầu học
+                {t('hero.start_learning')}
               </button>
             </>
           )}
+        </div>
+
+        {/* Theme and Language Controls */}
+        <div className="flex items-center gap-2 ml-auto md:ml-2">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+            title="Toggle theme"
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+          <button
+            onClick={() => i18n.changeLanguage(i18n.language === 'vi' ? 'en' : 'vi')}
+            className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 font-bold transition-colors text-sm text-slate-800 dark:text-white"
+            title="Toggle language"
+          >
+            {i18n.language === 'vi' ? 'EN' : 'VI'}
+          </button>
         </div>
 
         {/* Mobile hamburger */}
@@ -229,7 +261,7 @@ const Navbar: React.FC = () => {
                 className="bg-transparent border-none px-4 py-3 text-base font-medium text-left rounded-lg cursor-pointer"
                 style={{ color: '#f87171' }}
               >
-                🚪 Đăng xuất
+                {t('nav.logout')}
               </button>
             </>
           ) : (
@@ -239,7 +271,7 @@ const Navbar: React.FC = () => {
                 className="bg-transparent border-none px-4 py-3 text-base font-medium text-left rounded-lg cursor-pointer"
                 style={{ color: '#94a3b8' }}
               >
-                Đăng nhập
+                {t('nav.login')}
               </button>
               <button
                 onClick={() => { navigate('/register'); setMenuOpen(false); }}
@@ -250,10 +282,10 @@ const Navbar: React.FC = () => {
                   color: '#60a5fa',
                 }}
               >
-                Đăng ký
+                {t('nav.register')}
               </button>
               <button className="btn btn-primary mt-2" onClick={() => scrollTo('courses')}>
-                Bắt đầu học
+                {t('hero.start_learning')}
               </button>
             </>
           )}

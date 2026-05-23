@@ -1,37 +1,27 @@
-/**
- * Script khởi tạo database mới cho High Sky | Sky Growth
- * Chạy: node scripts/seedDatabase.js
- *
- * Sẽ tạo:
- *  - 1 tài khoản admin
- *  - 6 danh mục khóa học
- *  - 9 khóa học mẫu
- *  - Bài học mẫu cho mỗi khóa
- *  - Đánh giá mẫu
- */
-
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 // Models
-const AdminModel    = require('../src/models/account.models/admin.model');
-const CategoryModel = require('../src/models/course.models/category.model');
-const CourseModel   = require('../src/models/course.models/course.model');
-const LessonModel   = require('../src/models/course.models/lesson.model');
-const ReviewModel   = require('../src/models/course.models/review.model');
+const AdminModel = require('../src/models/account.models/admin.model').default || require('../src/models/account.models/admin.model');
+const CategoryModel = require('../src/models/course.models/category.model').default || require('../src/models/course.models/category.model');
+const CourseModel = require('../src/models/course.models/course.model').default || require('../src/models/course.models/course.model');
+const LessonModel = require('../src/models/course.models/lesson.model').default || require('../src/models/course.models/lesson.model');
+const ReviewModel = require('../src/models/course.models/review.model').default || require('../src/models/course.models/review.model');
 
 const MONGO_URL = process.env.MONGO_URL;
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
-  { name: 'Lập trình Web',    slug: 'lap-trinh-web',    icon: '🌐', description: 'HTML, CSS, JavaScript, React, Node.js...' },
-  { name: 'Mobile App',       slug: 'mobile-app',       icon: '📱', description: 'React Native, Flutter, iOS, Android...' },
-  { name: 'Data Science',     slug: 'data-science',     icon: '📊', description: 'Python, Machine Learning, AI, Big Data...' },
-  { name: 'DevOps & Cloud',   slug: 'devops-cloud',     icon: '☁️',  description: 'Docker, Kubernetes, AWS, CI/CD...' },
-  { name: 'UI/UX Design',     slug: 'ui-ux-design',     icon: '🎨', description: 'Figma, Adobe XD, Prototyping...' },
-  { name: 'Cơ sở dữ liệu',   slug: 'co-so-du-lieu',    icon: '🗄️',  description: 'SQL, MongoDB, Redis, PostgreSQL...' },
+  { name: 'Lập trình Web', slug: 'lap-trinh-web', icon: '🌐', description: 'HTML, CSS, JavaScript, React, Node.js...' },
+  { name: 'Mobile App', slug: 'mobile-app', icon: '📱', description: 'React Native, Flutter, iOS, Android...' },
+  { name: 'Data Science', slug: 'data-science', icon: '📊', description: 'Python, Machine Learning, AI, Big Data...' },
+  { name: 'DevOps & Cloud', slug: 'devops-cloud', icon: '☁️', description: 'Docker, Kubernetes, AWS, CI/CD...' },
+  { name: 'UI/UX Design', slug: 'ui-ux-design', icon: '🎨', description: 'Figma, Adobe XD, Prototyping...' },
+  { name: 'Cơ sở dữ liệu', slug: 'co-so-du-lieu', icon: '🗄️', description: 'SQL, MongoDB, Redis, PostgreSQL...' },
+  { name: 'Lập trình Trẻ em', slug: 'lap-trinh-tre-em', icon: '🎮', description: 'Scratch, Kodu, Tynker, Code.org...' },
+  { name: 'Ngôn ngữ khác', slug: 'ngon-ngu-khac', icon: '💻', description: 'C++, Java, C#, Go, Rust...' },
 ];
 
 const buildCourses = (catMap) => [
@@ -216,6 +206,86 @@ const buildCourses = (catMap) => [
     ratingCount: 267,
     enrollmentCount: 1068,
   },
+  {
+    title: 'Scratch Cơ Bản - Lập Trình Kéo Thả',
+    slug: 'scratch-co-ban',
+    shortDescription: 'Làm quen với tư duy lập trình thông qua các khối lệnh trực quan.',
+    description: 'Dành cho trẻ em và người mới bắt đầu. Học cách sử dụng Scratch để tạo ra các câu chuyện, trò chơi tương tác và hoạt hình vui nhộn.',
+    price: 499000,
+    salePrice: 299000,
+    category: catMap['lap-trinh-tre-em'],
+    instructor: { name: 'Giáo viên Anna', bio: 'Chuyên gia giáo dục STEM' },
+    level: 'beginner',
+    requirements: ['Không cần kinh nghiệm'],
+    outcomes: ['Làm quen tư duy logic', 'Tạo game mini', 'Kể chuyện tương tác'],
+    tags: ['scratch', 'kids', 'beginner'],
+    totalDuration: 600,
+    isFeatured: true,
+    isPublished: true,
+    rating: 4.9,
+    ratingCount: 150,
+    enrollmentCount: 600,
+  },
+  {
+    title: 'Scratch Nâng Cao - Lập Trình Game',
+    slug: 'scratch-nang-cao',
+    shortDescription: 'Xây dựng các trò chơi phức tạp, ứng dụng toán học và vật lý vào Scratch.',
+    description: 'Nâng cao kỹ năng Scratch. Tìm hiểu về biến, danh sách, gửi/nhận thông điệp, clone và tạo ra những tựa game hành động hoành tráng.',
+    price: 699000,
+    salePrice: 399000,
+    category: catMap['lap-trinh-tre-em'],
+    instructor: { name: 'Giáo viên Anna', bio: 'Chuyên gia giáo dục STEM' },
+    level: 'intermediate',
+    requirements: ['Đã hoàn thành Scratch Cơ Bản'],
+    outcomes: ['Tạo game phức tạp', 'Sử dụng biến & mảng', 'Xử lý logic nâng cao'],
+    tags: ['scratch', 'game', 'intermediate'],
+    totalDuration: 900,
+    isFeatured: false,
+    isPublished: true,
+    rating: 4.8,
+    ratingCount: 85,
+    enrollmentCount: 200,
+  },
+  {
+    title: 'Lập trình C++ - Từ Số 0 Đến Chuyên Gia',
+    slug: 'lap-trinh-cpp',
+    shortDescription: 'Khóa học C++ bài bản, rèn luyện tư duy thuật toán và cấu trúc dữ liệu.',
+    description: 'Học cú pháp C++, con trỏ, hướng đối tượng (OOP), cấu trúc dữ liệu (Mảng, Danh sách liên kết, Cây, Đồ thị) và luyện thi thuật toán.',
+    price: 1299000,
+    salePrice: 799000,
+    category: catMap['ngon-ngu-khac'],
+    instructor: { name: 'Lê Hoàng Long', bio: 'Senior C++ Developer' },
+    level: 'beginner',
+    requirements: ['Đam mê lập trình', 'Thích tư duy logic'],
+    outcomes: ['Thành thạo C++', 'Nắm vững OOP', 'Làm chủ Cấu trúc dữ liệu'],
+    tags: ['cpp', 'c++', 'oop', 'dsa'],
+    totalDuration: 1800,
+    isFeatured: false,
+    isPublished: true,
+    rating: 4.7,
+    ratingCount: 310,
+    enrollmentCount: 1200,
+  },
+  {
+    title: 'Java Core & Spring Boot 3 - Backend Doanh Nghiệp',
+    slug: 'java-spring-boot',
+    shortDescription: 'Xây dựng Backend chịu tải cao với Java, OOP và Spring Boot framework.',
+    description: 'Trang bị kiến thức Java Core, OOP sâu sắc và framework Spring Boot 3. Học cách xây dựng REST API, Microservices, Security, và deploy.',
+    price: 1599000,
+    salePrice: 999000,
+    category: catMap['ngon-ngu-khac'],
+    instructor: { name: 'Phạm Minh', bio: 'Software Architect' },
+    level: 'intermediate',
+    requirements: ['Biết cơ bản về lập trình'],
+    outcomes: ['Xây dựng ứng dụng Spring Boot', 'Bảo mật Spring Security', 'Kết nối cơ sở dữ liệu JPA/Hibernate'],
+    tags: ['java', 'springboot', 'backend', 'oop'],
+    totalDuration: 2400,
+    isFeatured: true,
+    isPublished: true,
+    rating: 4.8,
+    ratingCount: 450,
+    enrollmentCount: 1800,
+  },
 ];
 
 const buildLessons = (courseId, courseTitle) => [
@@ -230,10 +300,10 @@ const buildLessons = (courseId, courseTitle) => [
 
 const REVIEWS = [
   { studentName: 'Nguyễn Minh Tuấn', rating: 5, comment: 'Khóa học rất hay, giảng viên nhiệt tình. Tôi đã tìm được việc sau 3 tháng học!', isApproved: true },
-  { studentName: 'Trần Thị Lan',      rating: 5, comment: 'Nội dung thực chiến, sát với yêu cầu thực tế của doanh nghiệp. Rất đáng tiền!', isApproved: true },
-  { studentName: 'Lê Văn Hùng',       rating: 4, comment: 'Học xong có thể làm được ngay. Chỉ mong có thêm bài tập thực hành.', isApproved: true },
-  { studentName: 'Phạm Thu Hà',       rating: 5, comment: 'Giảng viên giải thích rất dễ hiểu. Cộng đồng hỗ trợ nhiệt tình.', isApproved: true },
-  { studentName: 'Đỗ Quang Vinh',     rating: 5, comment: 'Đây là khóa học tốt nhất tôi từng học. Xứng đáng 5 sao!', isApproved: true },
+  { studentName: 'Trần Thị Lan', rating: 5, comment: 'Nội dung thực chiến, sát với yêu cầu thực tế của doanh nghiệp. Rất đáng tiền!', isApproved: true },
+  { studentName: 'Lê Văn Hùng', rating: 4, comment: 'Học xong có thể làm được ngay. Chỉ mong có thêm bài tập thực hành.', isApproved: true },
+  { studentName: 'Phạm Thu Hà', rating: 5, comment: 'Giảng viên giải thích rất dễ hiểu. Cộng đồng hỗ trợ nhiệt tình.', isApproved: true },
+  { studentName: 'Đỗ Quang Vinh', rating: 5, comment: 'Đây là khóa học tốt nhất tôi từng học. Xứng đáng 5 sao!', isApproved: true },
 ];
 
 // ─── SEED ────────────────────────────────────────────────────────────────────
@@ -249,23 +319,26 @@ const seed = async () => {
 
     // Xóa dữ liệu cũ
     console.log('🗑️  Xóa dữ liệu cũ...');
-    await Promise.all([
-      AdminModel.deleteMany({}),
-      CategoryModel.deleteMany({}),
-      CourseModel.deleteMany({}),
-      LessonModel.deleteMany({}),
-      ReviewModel.deleteMany({}),
-    ]);
+    await AdminModel.deleteMany({});
+    await CategoryModel.deleteMany({});
+    await CourseModel.deleteMany({});
+    await LessonModel.deleteMany({});
+    await ReviewModel.deleteMany({});
+
+    try {
+      await CourseModel.collection.dropIndexes();
+    } catch (e) { }
+    await CourseModel.syncIndexes();
+
     console.log('✅ Đã xóa dữ liệu cũ\n');
 
     // 1. Tạo Admin
     console.log('👤 Tạo tài khoản admin...');
-    const hashedPwd = await bcrypt.hash('Admin@123', 10);
     await AdminModel.create({
       userName: 'admin',
-      password: hashedPwd,
+      password: 'Admin@123',
       email: 'admin@highsky.vn',
-      fullName: 'High Sky Admin',
+      fullName: 'Admin Khóa Lập Trình',
       phone: '0912345678',
     });
     console.log('   ✅ admin / Admin@123\n');
@@ -294,15 +367,8 @@ const seed = async () => {
     }
     console.log(`   ✅ ${totalLessons} bài học\n`);
 
-    // 5. Tạo Reviews cho 3 khóa đầu
-    console.log('⭐ Tạo đánh giá mẫu...');
+    // 5. Đánh giá tạm thời bị ẩn theo yêu cầu
     let totalReviews = 0;
-    for (let i = 0; i < Math.min(3, createdCourses.length); i++) {
-      const reviewsToInsert = REVIEWS.map((r) => ({ ...r, courseId: createdCourses[i]._id }));
-      await ReviewModel.insertMany(reviewsToInsert);
-      totalReviews += reviewsToInsert.length;
-    }
-    console.log(`   ✅ ${totalReviews} đánh giá\n`);
 
     // ─── Tổng kết ───────────────────────────────────────────────────────────
     console.log('═'.repeat(50));

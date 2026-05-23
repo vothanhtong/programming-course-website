@@ -140,7 +140,7 @@ const Reviews = () => {
             onChange: (p) => { setPage(p); fetchReviews(filter, p); },
             showTotal: (t) => `Tổng ${t} đánh giá`,
           }}
-          scroll={{ x: 800 }}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
     </div>

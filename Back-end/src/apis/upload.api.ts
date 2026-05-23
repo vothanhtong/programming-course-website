@@ -4,7 +4,12 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import { adminAuthentication } from '../middlewares/adminAuth.middleware';
+import { studentAuthentication } from '../middlewares/studentAuth.middleware';
+import AdminModel from '../models/account.models/admin.model';
+import StudentModel from '../models/student.model';
 import logger from '../configs/logger';
+import { getStudentId, getAdminId } from '../types';
+import { isValidId } from '../utils/validators';
 
 const router = Router();
 
@@ -88,6 +93,84 @@ router.delete('/image/:filename', adminAuthentication, (req: Request, res: Respo
     logger.error('[upload delete]', err);
     return res.status(500).json({ message: 'Lỗi server' });
   }
+});
+
+// ── POST /apis/upload/student-avatar ──────────────────────
+// Student upload avatar
+router.post('/student-avatar', studentAuthentication, (req: Request, res: Response) => {
+  const studentId = getStudentId(req) as string | undefined;
+  if (!studentId || !isValidId(studentId)) {
+    return res.status(401).json({ message: 'Chưa đăng nhập' });
+  }
+
+  upload.single('avatar')(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ message: 'File quá lớn. Tối đa 5MB.' });
+      }
+      return res.status(400).json({ message: err.message });
+    }
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
+    if (!req.file) {
+      return res.status(400).json({ message: 'Không có file được gửi lên' });
+    }
+
+    try {
+      // Cập nhật avatar path vào database
+      const url = `/uploads/${req.file.filename}`;
+      await StudentModel.updateOne(
+        { _id: studentId },
+        { avatar: url }
+      );
+
+      logger.info(`[student avatar] ${studentId} uploaded ${req.file.filename}`);
+      return res.status(201).json({ url, message: 'Tải ảnh đại diện thành công' });
+    } catch (err) {
+      logger.error('[student avatar]', err);
+      return res.status(500).json({ message: 'Lỗi server' });
+    }
+  });
+});
+
+// ── POST /apis/upload/admin-avatar ────────────────────────
+// Admin upload avatar
+router.post('/admin-avatar', adminAuthentication, (req: Request, res: Response) => {
+  const adminId = getAdminId(req) as string | undefined;
+  if (!adminId || !isValidId(adminId)) {
+    return res.status(401).json({ message: 'Chưa đăng nhập' });
+  }
+
+  upload.single('avatar')(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ message: 'File quá lớn. Tối đa 5MB.' });
+      }
+      return res.status(400).json({ message: err.message });
+    }
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
+    if (!req.file) {
+      return res.status(400).json({ message: 'Không có file được gửi lên' });
+    }
+
+    try {
+      // Cập nhật avatar path vào database
+      const url = `/uploads/${req.file.filename}`;
+      await AdminModel.updateOne(
+        { _id: adminId },
+        { avatar: url }
+      );
+
+      logger.info(`[admin avatar] ${adminId} uploaded ${req.file.filename}`);
+      return res.status(201).json({ url, message: 'Tải ảnh đại diện thành công' });
+    } catch (err) {
+      logger.error('[admin avatar]', err);
+      return res.status(500).json({ message: 'Lỗi server' });
+    }
+  });
 });
 
 export default router;

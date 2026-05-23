@@ -70,7 +70,6 @@ const Students = () => {
       const res = await adminApi.createStudent({ ...values, sendEmail: values.sendEmail ?? true });
       message.success('Tạo tài khoản thành công!');
       if (res.tempPassword) {
-        setTempPw(res.tempPassword);
         Modal.success({
           title: 'Tài khoản đã tạo',
           content: (
@@ -124,110 +123,117 @@ const Students = () => {
         sendEmail: values.sendEmail ?? true,
       });
       message.success('Đặt lại mật khẩu thành công');
-      Modal.info({
-        title: 'Mật khẩu mới',
-        content: (
-          <div>
-            <p>Học viên: <strong>{selected.fullName}</strong></p>
-            <p>Mật khẩu mới: <strong style={{ color: '#1677ff' }}>{res.tempPassword}</strong></p>
-          </div>
-        ),
-      });
+      if (res.tempPassword || values.newPassword) {
+        Modal.info({
+          title: 'Mật khẩu mới',
+          content: (
+            <div>
+              <p>Học viên: <strong>{selected.fullName}</strong></p>
+              <p>Mật khẩu mới: <strong style={{ color: '#1677ff' }}>{res.tempPassword || values.newPassword}</strong></p>
+            </div>
+          ),
+        });
+      }
       setPwOpen(false);
-    } catch (err) { message.error(err?.message || 'Thất bại'); }
-  };
-
-  // ── Grant courses ──────────────────────────────────────
-  const openGrant = (student) => {
-    setSelected(student);
-    grantForm.resetFields();
-    setGrantOpen(true);
+      pwForm.resetFields();
+    } catch (err) {
+      message.error(err?.message || 'Đặt lại mật khẩu thất bại');
+    }
   };
 
   const handleGrant = async (values) => {
     try {
       await adminApi.grantCourses(selected._id, { courseIds: values.courseIds });
-      message.success(`Đã cấp ${values.courseIds.length} khóa học`);
+      message.success('Đã cấp khóa học');
       setGrantOpen(false);
-      fetchStudents(page);
-    } catch (err) { message.error(err?.message || 'Thất bại'); }
+      grantForm.resetFields();
+      if (detailOpen) {
+        const res = await adminApi.getStudentDetail(selected._id);
+        setSelected(res.student);
+      }
+    } catch (err) {
+      message.error(err?.message || 'Cấp khóa học thất bại');
+    }
   };
 
-  // ── Delete ─────────────────────────────────────────────
+  // ── Delete student ─────────────────────────────────────
   const handleDelete = async (id) => {
     try {
       await adminApi.deleteStudent(id);
       message.success('Đã xóa học viên');
       fetchStudents(page);
-    } catch { message.error('Xóa thất bại'); }
+    } catch (err) { message.error(err?.message || 'Xóa thất bại'); }
   };
 
-  // ── Detail drawer ──────────────────────────────────────
-  const openDetail = async (student) => {
-    setSelected(student);
-    setDetailOpen(true);
-    try {
-      const res = await adminApi.getStudentDetail(student._id);
-      setSelected(res.student);
-    } catch {}
-  };
-
-  // ── Columns ────────────────────────────────────────────
+  // ── Table Columns ──────────────────────────────────────
   const columns = [
     {
       title: 'Học viên',
-      key: 'student',
+      key: 'user',
       render: (_, r) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <Space>
           <div style={{
             width: 36, height: 36, borderRadius: '50%',
             background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontWeight: 700, fontSize: 14, flexShrink: 0,
-            overflow: 'hidden',
+            color: '#fff', fontWeight: 700, fontSize: 14, overflow: 'hidden',
           }}>
             {r.avatar ? <img src={r.avatar} alt={r.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : r.fullName?.[0]}
           </div>
           <div>
             <div style={{ fontWeight: 600 }}>{r.fullName}</div>
-            <div style={{ fontSize: 12, color: '#8c8c8c' }}>{r.email}</div>
+            <div style={{ fontSize: 12, color: '#888' }}>{r.email}</div>
           </div>
-        </div>
+        </Space>
+      ),
+    },
+    { title: 'Số điện thoại', dataIndex: 'phone', key: 'phone', render: t => t || '—' },
+    {
+      title: 'Khóa học', key: 'courses',
+      render: (_, r) => <Tag color="blue">{r.enrolledCourses?.length || 0} khóa</Tag>,
+    },
+    {
+      title: 'Trạng thái', key: 'status',
+      render: (_, r) => (
+        <Tag color={r.isVerified ? 'success' : 'warning'}>
+          {r.isVerified ? 'Đã xác thực' : 'Chưa xác thực'}
+        </Tag>
       ),
     },
     {
-      title: 'SĐT',
-      dataIndex: 'phone',
-      key: 'phone',
-      render: v => v || <span style={{ color: '#bfbfbf' }}>—</span>,
-    },
-    {
-      title: 'Khóa học',
-      dataIndex: 'enrolledCourses',
-      key: 'courses',
-      render: arr => <Tag color="blue">{arr?.length || 0} khóa</Tag>,
-    },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'isVerified',
-      key: 'isVerified',
-      render: v => <Badge status={v ? 'success' : 'warning'} text={v ? 'Đã xác thực' : 'Chưa xác thực'} />,
-    },
-    {
-      title: 'Ngày tạo',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: v => new Date(v).toLocaleDateString('vi-VN'),
-    },
-    {
-      title: 'Hành động',
-      key: 'action',
+      title: 'Thao tác', key: 'action', align: 'right',
       render: (_, record) => (
-        <Space size={4}>
-          <Tooltip title="Chi tiết"><Button icon={<EyeOutlined />} size="small" onClick={() => openDetail(record)} /></Tooltip>
-          <Tooltip title="Cấp khóa học"><Button icon={<BookOutlined />} size="small" type="primary" ghost onClick={() => openGrant(record)} /></Tooltip>
-          <Tooltip title="Chỉnh sửa"><Button icon={<EditOutlined />} size="small" onClick={() => openEdit(record)} /></Tooltip>
-          <Tooltip title="Đặt lại mật khẩu"><Button icon={<KeyOutlined />} size="small" onClick={() => openResetPw(record)} /></Tooltip>
+        <Space size="small">
+          <Tooltip title="Chi tiết">
+            <Button
+              icon={<EyeOutlined />} size="small"
+              onClick={async () => {
+                try {
+                  const res = await adminApi.getStudentDetail(record._id);
+                  setSelected(res.student);
+                  setDetailOpen(true);
+                } catch { message.error('Không thể tải thông tin'); }
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Sửa">
+            <Button
+              icon={<EditOutlined />} size="small"
+              onClick={() => openEdit(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Cấp khóa học">
+            <Button
+              icon={<BookOutlined />} size="small"
+              onClick={() => { setSelected(record); setGrantOpen(true); }}
+            />
+          </Tooltip>
+          <Tooltip title="Đặt lại mật khẩu">
+            <Button
+              icon={<KeyOutlined />} size="small"
+              onClick={() => { setSelected(record); setPwOpen(true); }}
+            />
+          </Tooltip>
           <Popconfirm title="Xóa học viên này?" onConfirm={() => handleDelete(record._id)} okText="Xóa" cancelText="Hủy" okButtonProps={{ danger: true }}>
             <Tooltip title="Xóa"><Button icon={<DeleteOutlined />} size="small" danger /></Tooltip>
           </Popconfirm>
@@ -238,7 +244,6 @@ const Students = () => {
 
   return (
     <div>
-      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <Title level={4} style={{ margin: 0 }}>Quản lý học viên</Title>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => { createForm.resetFields(); setCreateOpen(true); }}>
@@ -246,7 +251,6 @@ const Students = () => {
         </Button>
       </div>
 
-      {/* Search */}
       <Card style={{ borderRadius: 12, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: 16 }}>
         <Input.Search
           placeholder="Tìm theo tên, email, số điện thoại..."
@@ -257,7 +261,6 @@ const Students = () => {
         />
       </Card>
 
-      {/* Table */}
       <Card style={{ borderRadius: 12, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         <Table
           columns={columns}
@@ -266,15 +269,14 @@ const Students = () => {
           loading={loading}
           pagination={{
             total, pageSize: 15, current: page,
-            onChange: p => fetchStudents(p),
+            onChange: p => setPage(p),
             showTotal: t => `Tổng ${t} học viên`,
           }}
-          scroll={{ x: 900 }}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
 
-      {/* ── Modal: Tạo tài khoản ── */}
-      <Modal title="Tạo tài khoản học viên" open={createOpen} onCancel={() => setCreateOpen(false)} footer={null} width={560} destroyOnClose>
+      <Modal title="Tạo tài khoản học viên" open={createOpen} onCancel={() => setCreateOpen(false)} footer={null} width="100%" style={{ maxWidth: 560, top: 20 }} destroyOnClose>
         <Form form={createForm} layout="vertical" onFinish={handleCreate} style={{ marginTop: 16 }}>
           <Form.Item name="fullName" label="Họ và tên" rules={[{ required: true }]}>
             <Input placeholder="Nguyễn Văn A" />
@@ -290,9 +292,6 @@ const Students = () => {
               {courses.map(c => <Option key={c._id} value={c._id}>{c.title}</Option>)}
             </Select>
           </Form.Item>
-          <Form.Item name="sendEmail" label="Gửi email thông báo" valuePropName="checked" initialValue={true}>
-            <Switch checkedChildren="Có" unCheckedChildren="Không" />
-          </Form.Item>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
             <Button onClick={() => setCreateOpen(false)}>Hủy</Button>
             <Button type="primary" htmlType="submit">Tạo tài khoản</Button>
@@ -300,8 +299,7 @@ const Students = () => {
         </Form>
       </Modal>
 
-      {/* ── Modal: Chỉnh sửa ── */}
-      <Modal title="Chỉnh sửa học viên" open={editOpen} onCancel={() => setEditOpen(false)} footer={null} destroyOnClose>
+      <Modal title="Chỉnh sửa học viên" open={editOpen} onCancel={() => setEditOpen(false)} footer={null} width="100%" style={{ maxWidth: 520, top: 20 }} destroyOnClose>
         <Form form={editForm} layout="vertical" onFinish={handleEdit} style={{ marginTop: 16 }}>
           <Form.Item label="Ảnh đại diện">
             <ImageUploader
@@ -309,7 +307,6 @@ const Students = () => {
               onChange={setAvatarUrl}
               shape="circle"
               size={90}
-              placeholder="Chọn ảnh"
             />
           </Form.Item>
           <Form.Item name="fullName" label="Họ và tên" rules={[{ required: true }]}>
@@ -331,17 +328,13 @@ const Students = () => {
         </Form>
       </Modal>
 
-      {/* ── Modal: Đặt lại mật khẩu ── */}
-      <Modal title="Đặt lại mật khẩu" open={pwOpen} onCancel={() => setPwOpen(false)} footer={null} destroyOnClose>
+      <Modal title="Đặt lại mật khẩu" open={pwOpen} onCancel={() => setPwOpen(false)} footer={null} width="100%" style={{ maxWidth: 520, top: 20 }} destroyOnClose>
         <Form form={pwForm} layout="vertical" onFinish={handleResetPw} style={{ marginTop: 16 }}>
           <p style={{ color: '#888', marginBottom: 16 }}>
             Học viên: <strong>{selected?.fullName}</strong> ({selected?.email})
           </p>
           <Form.Item name="newPassword" label="Mật khẩu mới (để trống = tự động tạo)">
             <Input.Password placeholder="Để trống để tạo ngẫu nhiên" />
-          </Form.Item>
-          <Form.Item name="sendEmail" label="Gửi email thông báo" valuePropName="checked" initialValue={true}>
-            <Switch checkedChildren="Có" unCheckedChildren="Không" />
           </Form.Item>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
             <Button onClick={() => setPwOpen(false)}>Hủy</Button>
@@ -350,8 +343,7 @@ const Students = () => {
         </Form>
       </Modal>
 
-      {/* ── Modal: Cấp khóa học ── */}
-      <Modal title="Cấp khóa học" open={grantOpen} onCancel={() => setGrantOpen(false)} footer={null} destroyOnClose>
+      <Modal title="Cấp khóa học" open={grantOpen} onCancel={() => setGrantOpen(false)} footer={null} width="100%" style={{ maxWidth: 520, top: 20 }} destroyOnClose>
         <Form form={grantForm} layout="vertical" onFinish={handleGrant} style={{ marginTop: 16 }}>
           <p style={{ color: '#888', marginBottom: 16 }}>
             Cấp khóa học cho: <strong>{selected?.fullName}</strong>
@@ -373,7 +365,7 @@ const Students = () => {
         title="Chi tiết học viên"
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
-        width={480}
+        width={Math.min(480, window.innerWidth - 32)}
       >
         {selected && (
           <>

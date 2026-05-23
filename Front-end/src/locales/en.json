@@ -1,0 +1,63 @@
+{
+  "nav": {
+    "courses": "Courses",
+    "about": "About Us",
+    "students": "Students",
+    "contact": "Contact",
+    "login": "Sign In",
+    "register": "Sign Up"
+  },
+  "hero": {
+    "badge": "🚀 Unlock your coding potential",
+    "title": "Learn Practical Coding",
+    "title_highlight": "With Experts",
+    "desc": "Join thousands of successful students who have transformed their careers with our high-quality programming courses. Learn from real-world projects and industry experts.",
+    "start_learning": "Start Learning",
+    "view_roadmap": "View Roadmap",
+    "students": "Students",
+    "lessons": "Lessons",
+    "rating": "Rating"
+  },
+  "features": {
+    "title": "Why Choose Us?",
+    "f1_title": "Real-world Projects",
+    "f1_desc": "Learn by building practical applications. Build your portfolio as you learn.",
+    "f2_title": "Expert Instructors",
+    "f2_desc": "Learn from experienced software engineers from top tech companies.",
+    "f3_title": "24/7 Support",
+    "f3_desc": "Join our vibrant community. Get help whenever you get stuck.",
+    "f4_title": "Clear Roadmap",
+    "f4_desc": "Step-by-step learning paths designed to take you from zero to developer.",
+    "f5_title": "1-on-1 Practical Instructors",
+    "f5_desc": "Learn directly 1-on-1 with industry engineers, helping you answer all questions and guiding your career."
+  },
+  "courses": {
+    "title": "Featured Courses",
+    "all_categories": "All Categories",
+    "free": "Free",
+    "lessons": "Lessons",
+    "view_detail": "View Detail"
+  },
+  "contact": {
+    "title": "Ready to Start?",
+    "desc": "Join thousands of students and start your coding journey today.",
+    "start_now": "Get Started Now"
+  },
+  "footer": {
+    "desc": "Leading online coding platform, helping you build a solid career in the IT industry.",
+    "links": "Links",
+    "about": "About Us",
+    "courses": "Courses",
+    "instructors": "Instructors",
+    "contact": "Contact",
+    "legal": "Legal",
+    "terms": "Terms of Use",
+    "privacy": "Privacy Policy",
+    "refund": "Refund Policy",
+    "subscribe": "Subscribe",
+    "subscribe_desc": "Get the latest news about courses and offers.",
+    "email_placeholder": "Your email",
+    "subscribe_btn": "Subscribe",
+    "copyright": "Copyright Khóa Lập Trình. All rights reserved."
+  }
+}

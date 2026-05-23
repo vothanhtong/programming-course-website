@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as messageController from '../controllers/message.controller';
-import { adminAuthentication } from '../middlewares/adminAuth.middleware';
+import { studentAuthentication } from '../middlewares/studentAuth.middleware';
 import rateLimit from 'express-rate-limit';
 
 const router = Router();
@@ -12,10 +12,10 @@ const msgLimiter = rateLimit({
   standardHeaders: 'draft-7', legacyHeaders: false,
 });
 
-// Public
+// Public — gửi tin nhắn liên hệ
 router.post('/', msgLimiter, messageController.postMessage);
 
-// Public: student lấy lịch sử chat theo email (dùng polling)
-router.get('/by-email', messageController.getMessagesByEmail);
+// Protected — chỉ student đã đăng nhập mới xem được chat history của chính mình
+router.get('/by-email', studentAuthentication, messageController.getMessagesByEmail);
 
 export default router;

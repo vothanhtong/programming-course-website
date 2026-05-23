@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import authApi from '../../api/authApi';
 import axiosClient from '../../api/axiosClient';
+import ImageUploader from '../../components/ImageUploader/ImageUploader';
 import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
 
@@ -95,7 +96,7 @@ const ProfilePage: React.FC = () => {
     if (!student?.email) return;
     setMsgsLoading(true);
     try {
-      const res = await authApi.getMyMessages(student.email);
+      const res = await authApi.getMyMessages();
       setMyMessages(res.messages || []);
     } catch {
       // silent
@@ -104,14 +105,30 @@ const ProfilePage: React.FC = () => {
     }
   }, [student?.email]);
 
+  // Initial fetch when switching to messages tab
   useEffect(() => {
     if (tab === 'messages') fetchMyMessages();
   }, [tab, fetchMyMessages]);
 
+  // Auto-refresh polling for messages tab (every 30 seconds)
   useEffect(() => {
-    if (tab === 'messages') {
-      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 150);
-    }
+    if (tab !== 'messages' || !student?.email) return;
+
+    const pollInterval = setInterval(() => {
+      // Silent refresh without showing loading state
+      authApi.getMyMessages()
+        .then(res => setMyMessages(res.messages || []))
+        .catch(() => {/* silent */});
+    }, 30000); // 30 seconds
+
+    // Cleanup interval on unmount or tab change
+    return () => clearInterval(pollInterval);
+  }, [tab, student?.email]);
+
+  useEffect(() => {
+    if (tab !== 'messages') return;
+    const timer = setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 150);
+    return () => clearTimeout(timer);
   }, [myMessages, tab]);
 
   const handleLogout = useCallback(() => { logout(); navigate('/'); }, [logout, navigate]);
@@ -181,7 +198,7 @@ const ProfilePage: React.FC = () => {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen pt-24 pb-16"
+      <main className="w-full min-h-screen pt-24 pb-16 overflow-x-hidden"
         style={{ background: 'linear-gradient(135deg, #020817 0%, #0f172a 60%, #0d1526 100%)' }}>
         <div className="fixed inset-0 pointer-events-none" style={{
           backgroundImage: 'linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px)',
@@ -198,7 +215,7 @@ const ProfilePage: React.FC = () => {
             <p className="text-sm mt-1" style={{ color: '#64748b' }}>Quản lý thông tin cá nhân và khóa học</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-8">
             {/* Sidebar */}
             <div className="lg:col-span-1 space-y-4">
               <div className="rounded-2xl p-6 text-center" style={cardStyle}>
@@ -250,14 +267,16 @@ const ProfilePage: React.FC = () => {
 
               {/* Profile tab */}
               {tab === 'profile' && (
-                <div className="rounded-2xl p-8" style={cardStyle}>
+                <div className="rounded-2xl p-6 sm:p-8" style={cardStyle}>
                   <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">👤 Thông tin cá nhân</h2>
                   <form onSubmit={handleProfileSave} className="space-y-5 max-w-lg">
                     <div>
-                      <label className="block text-sm font-medium mb-1.5" style={{ color: '#94a3b8' }}>Ảnh đại diện (URL)</label>
-                      <input type="url" placeholder="https://..." value={profileForm.avatar}
-                        onChange={e => setProfileForm(f => ({ ...f, avatar: e.target.value }))}
-                        className={inputCls} style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                      <label className="block text-sm font-medium mb-2" style={{ color: '#94a3b8' }}>Ảnh đại diện</label>
+                      <ImageUploader
+                        type="student-avatar"
+                        currentImage={profileForm.avatar}
+                        onUpload={(url) => setProfileForm(f => ({ ...f, avatar: url }))}
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1.5" style={{ color: '#94a3b8' }}>Họ và tên</label>
@@ -293,7 +312,7 @@ const ProfilePage: React.FC = () => {
 
               {/* Courses tab */}
               {tab === 'courses' && (
-                <div className="rounded-2xl p-8" style={cardStyle}>
+                <div className="rounded-2xl p-6 sm:p-8" style={cardStyle}>
                   <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">📚 Khóa học của tôi</h2>
                   {student.enrolledCourses && student.enrolledCourses.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -332,7 +351,7 @@ const ProfilePage: React.FC = () => {
                     <p className="text-xs mt-1 m-0" style={{ color: '#64748b' }}>Gửi câu hỏi — admin sẽ trả lời tại đây</p>
                   </div>
 
-                  <div style={{ minHeight: 320, maxHeight: 420, overflowY: 'auto', padding: '20px 20px 8px', background: 'rgba(2,8,23,0.3)' }}>
+                  <div className="overscroll-contain" style={{ minHeight: 280, maxHeight: 'min(calc(100vh - 400px), 480px)', overflowY: 'auto', padding: '20px 20px 8px', background: 'rgba(2,8,23,0.3)' }}>
                     {msgsLoading ? (
                       <div className="text-center py-12" style={{ color: '#64748b' }}>Đang tải...</div>
                     ) : myMessages.length === 0 ? (

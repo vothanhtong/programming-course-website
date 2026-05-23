@@ -207,7 +207,7 @@ const Courses = () => {
             onChange: (p) => { setPage(p); fetchCourses(p); },
             showTotal: (t) => `Tổng ${t} khóa học`,
           }}
-          scroll={{ x: 900 }}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
 
@@ -217,7 +217,8 @@ const Courses = () => {
         open={modalOpen}
         onCancel={() => setModalOpen(false)}
         footer={null}
-        width={720}
+        width="100%"
+        style={{ maxWidth: 720, top: 20 }}
         destroyOnClose
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ marginTop: 16 }}>

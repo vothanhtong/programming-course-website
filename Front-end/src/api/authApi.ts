@@ -38,9 +38,9 @@ const authApi = {
   resetPassword: (data: { token: string; newPassword: string }): Promise<{ message: string }> =>
     axiosClient.post('/apis/auth/reset-password', data),
 
-  // Lấy lịch sử chat theo email
-  getMyMessages: (email: string): Promise<{ messages: any[] }> =>
-    axiosClient.get('/apis/messages/by-email', { params: { email } }),
+  // Lấy lịch sử chat — email lấy từ token phía server, không cần truyền
+  getMyMessages: (): Promise<{ messages: any[]; hasMore: boolean; nextCursor: string | null; total: number }> =>
+    axiosClient.get('/apis/messages/by-email'),
 };
 
 export default authApi;

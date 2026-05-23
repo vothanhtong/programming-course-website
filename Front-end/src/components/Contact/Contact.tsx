@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import axiosClient from '../../api/axiosClient';
 
 const channels = [
@@ -55,6 +56,7 @@ const channels = [
 const initialForm = { name: '', email: '', phone: '', message: '' };
 
 const Contact: React.FC = () => {
+  const { t } = useTranslation();
   const [form, setForm]       = useState(initialForm);
   const [sent, setSent]       = useState(false);
   const [error, setError]     = useState('');
@@ -83,21 +85,20 @@ const Contact: React.FC = () => {
 
   return (
     <section
-      className="section"
+      className="section bg-slate-100 dark:bg-transparent"
       id="contact"
-      style={{ background: 'linear-gradient(180deg, #0a0f1e 0%, #0f172a 100%)' }}
     >
-      <div className="container">
+      <div className="absolute inset-0 dark:bg-dark-gradient pointer-events-none -z-10" />
+      <div className="container relative z-10">
         <div className="glow-line mb-16 opacity-40" />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           {/* Info */}
           <div>
-            <span className="tag tag-blue mb-4">📞 Liên hệ</span>
-            <h2 className="section-title">Bạn có câu hỏi?</h2>
-            <p className="text-base leading-relaxed mb-10" style={{ color: '#64748b' }}>
-              Đội ngũ tư vấn của chúng tôi luôn sẵn sàng hỗ trợ bạn chọn khóa học phù hợp
-              và giải đáp mọi thắc mắc.
+            <span className="tag tag-blue mb-4">📞 {t('contact.title')}</span>
+            <h2 className="section-title text-slate-900 dark:text-white">{t('contact.title')}</h2>
+            <p className="text-base leading-relaxed mb-10 text-slate-600 dark:text-slate-400">
+              {t('contact.desc')}
             </p>
 
             <div className="flex flex-col gap-4">
@@ -109,25 +110,22 @@ const Contact: React.FC = () => {
 
           {/* Form */}
           <div
-            className="p-8 rounded-2xl"
+            className="p-8 rounded-2xl bg-white border border-slate-200 shadow-sm dark:bg-[rgba(15,23,42,0.7)] dark:border-[rgba(59,130,246,0.2)] dark:shadow-[0_0_40px_rgba(59,130,246,0.08)]"
             style={{
-              background: 'rgba(15,23,42,0.7)',
-              border: '1px solid rgba(59,130,246,0.2)',
-              boxShadow: '0 0 40px rgba(59,130,246,0.08)',
               backdropFilter: 'blur(12px)',
             }}
           >
             {sent ? (
               <div className="text-center py-10">
                 <div className="text-5xl mb-4">✅</div>
-                <h3 className="text-xl font-bold mb-2" style={{ color: '#f1f5f9' }}>
+                <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-[#f1f5f9]">
                   Gửi thành công!
                 </h3>
-                <p style={{ color: '#64748b' }}>Chúng tôi sẽ liên hệ lại trong vòng 24 giờ.</p>
+                <p className="text-slate-600 dark:text-[#64748b]">Chúng tôi sẽ liên hệ lại trong vòng 24 giờ.</p>
               </div>
             ) : (
               <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-                <h3 className="text-xl font-bold mb-2" style={{ color: '#f1f5f9' }}>
+                <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-[#f1f5f9]">
                   Gửi tin nhắn cho chúng tôi
                 </h3>
 
@@ -221,10 +219,10 @@ const ChannelCard: React.FC<{ channel: Channel }> = ({ channel: c }) => {
       href={c.href}
       target={c.href.startsWith('http') ? '_blank' : undefined}
       rel="noopener noreferrer"
-      className="flex items-center gap-4 p-4 rounded-xl transition-all duration-200 no-underline"
+      className="flex items-center gap-4 p-4 rounded-xl transition-all duration-200 no-underline bg-slate-50 dark:bg-[rgba(15,23,42,0.5)] border border-slate-200 dark:border-[rgba(59,130,246,0.1)]"
       style={{
-        background: hovered ? `${c.color}12` : 'rgba(15,23,42,0.5)',
-        border: hovered ? `1px solid ${c.color}45` : '1px solid rgba(59,130,246,0.1)',
+        background: hovered ? `${c.color}12` : undefined,
+        border: hovered ? `1px solid ${c.color}45` : undefined,
         transform: hovered ? 'translateX(4px)' : 'translateX(0)',
       }}
       onMouseEnter={() => setHovered(true)}
@@ -237,8 +235,8 @@ const ChannelCard: React.FC<{ channel: Channel }> = ({ channel: c }) => {
         {c.icon}
       </div>
       <div>
-        <div className="text-xs font-medium mb-0.5" style={{ color: '#475569' }}>{c.label}</div>
-        <div className="text-base font-semibold" style={{ color: '#e2e8f0' }}>{c.value}</div>
+        <div className="text-xs font-medium mb-0.5 text-slate-500 dark:text-[#475569]">{c.label}</div>
+        <div className="text-base font-semibold text-slate-900 dark:text-[#e2e8f0]">{c.value}</div>
       </div>
       <span className="ml-auto text-sm" style={{ color: c.color, opacity: hovered ? 1 : 0, transition: 'opacity 0.2s' }}>→</span>
     </a>

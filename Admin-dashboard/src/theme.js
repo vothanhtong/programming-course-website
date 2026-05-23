@@ -180,49 +180,4 @@ export const darkTheme = {
   },
 };
 
-// Tag preset colors — dịu hơn, dễ đọc trên nền tối
-export const tagColors = {
-  // Level
-  beginner:     { bg: 'rgba(16,185,129,0.12)',  color: '#6ee7b7', border: 'rgba(16,185,129,0.25)' },
-  intermediate: { bg: 'rgba(59,130,246,0.12)',  color: '#93c5fd', border: 'rgba(59,130,246,0.25)' },
-  advanced:     { bg: 'rgba(239,68,68,0.1)',    color: '#fca5a5', border: 'rgba(239,68,68,0.2)'  },
 
-  // Status
-  published:    { bg: 'rgba(16,185,129,0.1)',   color: '#6ee7b7', border: 'rgba(16,185,129,0.2)' },
-  draft:        { bg: 'rgba(100,116,139,0.15)', color: '#94a3b8', border: 'rgba(100,116,139,0.25)' },
-  free:         { bg: 'rgba(16,185,129,0.1)',   color: '#6ee7b7', border: 'rgba(16,185,129,0.2)' },
-
-  // Payment
-  paid:         { bg: 'rgba(16,185,129,0.1)',   color: '#6ee7b7', border: 'rgba(16,185,129,0.2)' },
-  pending:      { bg: 'rgba(245,158,11,0.1)',   color: '#fcd34d', border: 'rgba(245,158,11,0.2)' },
-  failed:       { bg: 'rgba(239,68,68,0.1)',    color: '#fca5a5', border: 'rgba(239,68,68,0.2)'  },
-  refunded:     { bg: 'rgba(139,92,246,0.1)',   color: '#c4b5fd', border: 'rgba(139,92,246,0.2)' },
-
-  // Generic
-  blue:         { bg: 'rgba(59,130,246,0.12)',  color: '#93c5fd', border: 'rgba(59,130,246,0.25)' },
-  green:        { bg: 'rgba(16,185,129,0.12)',  color: '#6ee7b7', border: 'rgba(16,185,129,0.25)' },
-  yellow:       { bg: 'rgba(245,158,11,0.12)',  color: '#fcd34d', border: 'rgba(245,158,11,0.25)' },
-  red:          { bg: 'rgba(239,68,68,0.1)',    color: '#fca5a5', border: 'rgba(239,68,68,0.2)'  },
-  purple:       { bg: 'rgba(139,92,246,0.1)',   color: '#c4b5fd', border: 'rgba(139,92,246,0.2)' },
-  gray:         { bg: 'rgba(100,116,139,0.15)', color: '#94a3b8', border: 'rgba(100,116,139,0.25)' },
-};
-
-/** Render tag với style dịu */
-export const DarkTag = ({ type, children }) => {
-  const s = tagColors[type] || tagColors.gray;
-  return (
-    <span style={{
-      display: 'inline-block',
-      padding: '2px 10px',
-      borderRadius: 6,
-      fontSize: 12,
-      fontWeight: 500,
-      background: s.bg,
-      color: s.color,
-      border: `1px solid ${s.border}`,
-      whiteSpace: 'nowrap',
-    }}>
-      {children}
-    </span>
-  );
-};

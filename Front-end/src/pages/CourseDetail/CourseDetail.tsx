@@ -3,8 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import courseApi from '../../api/courseApi';
 import type { Course, Lesson, Review, ReviewFormData } from '../../types';
 import EnrollModal from '../../components/EnrollModal/EnrollModal';
+import CourseDetailSkeleton from '../../components/Skeleton/CourseDetailSkeleton';
+import NotFoundPage from '../NotFound/NotFoundPage';
 import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
+import QuizTab from '../../components/Quiz/QuizTab';
 
 const levelMap: Record<string, string> = {
   beginner: 'Cơ bản', intermediate: 'Trung cấp', advanced: 'Nâng cao',
@@ -37,8 +40,9 @@ const CourseDetail: React.FC = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [enrollOpen, setEnrollOpen] = useState(false);
-  const [activeTab, setActiveTab]   = useState<'overview' | 'lessons' | 'reviews'>('overview');
+  const [activeTab, setActiveTab]   = useState<'overview' | 'lessons' | 'quizzes' | 'reviews'>('overview');
   const [reviewForm, setReviewForm] = useState<ReviewFormData>({ courseId: '', studentName: '', rating: 5, comment: '' });
   const [reviewSent, setReviewSent]       = useState(false);
   const [reviewLoading, setReviewLoading] = useState(false);
@@ -48,6 +52,7 @@ const CourseDetail: React.FC = () => {
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
+    setNotFound(false);
     courseApi.getCourseDetail(slug)
       .then(res => {
         setCourse(res.course);
@@ -55,9 +60,9 @@ const CourseDetail: React.FC = () => {
         setReviews(res.reviews);
         setReviewForm(f => ({ ...f, courseId: res.course._id }));
       })
-      .catch(() => navigate('/'))
+      .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
-  }, [slug, navigate]);
+  }, [slug]);
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,12 +85,15 @@ const CourseDetail: React.FC = () => {
   if (loading) return (
     <>
       <Navbar />
-      <div className="min-h-screen flex items-center justify-center pt-20">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-gray-500">Đang tải khóa học...</p>
-        </div>
-      </div>
+      <CourseDetailSkeleton />
+      <Footer />
+    </>
+  );
+
+  if (notFound) return (
+    <>
+      <Navbar />
+      <NotFoundPage />
       <Footer />
     </>
   );
@@ -100,7 +108,7 @@ const CourseDetail: React.FC = () => {
   return (
     <>
       <Navbar />
-      <main className="pt-16">
+      <main className="flex-1 w-full pt-16 overflow-x-hidden lg:pb-0 pb-20">
         <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-12">
           <div className="container">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
@@ -142,13 +150,22 @@ const CourseDetail: React.FC = () => {
           </div>
         </div>
 
+        {/* Mobile sticky enroll bar — visible only below lg */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-4 py-3 flex items-center justify-between gap-4"
+          style={{ background: 'rgba(9,15,29,0.97)', borderTop: '1px solid rgba(59,130,246,0.2)', backdropFilter: 'blur(12px)' }}>
+          <div className="text-xl font-extrabold text-blue-400">
+            {course.isFree ? <span className="text-green-400">Miễn phí</span> : `${price.toLocaleString('vi-VN')}đ`}
+          </div>
+          <button onClick={() => setEnrollOpen(true)} className="btn btn-primary px-6 py-2.5 text-sm flex-shrink-0">Đăng ký ngay</button>
+        </div>
+
         <div className="border-b border-gray-200 bg-white sticky top-16 z-30">
           <div className="container">
             <div className="flex gap-0">
-              {(['overview', 'lessons', 'reviews'] as const).map(tab => (
+              {(['overview', 'lessons', 'quizzes'] as const).map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)}
                   className={`px-6 py-4 text-sm font-semibold border-b-2 transition-all bg-transparent cursor-pointer ${activeTab === tab ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
-                  {tab === 'overview' ? 'Tổng quan' : tab === 'lessons' ? `Bài học (${lessons.length})` : `Đánh giá (${reviews.length})`}
+                  {tab === 'overview' ? 'Tổng quan' : tab === 'lessons' ? `Bài học (${lessons.length})` : 'Trắc nghiệm'}
                 </button>
               ))}
             </div>
@@ -203,64 +220,11 @@ const CourseDetail: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'reviews' && (
-            <div className="space-y-6 max-w-3xl">
-              {reviews.length > 0 ? reviews.map(r => (
-                <div key={r._id} className="border border-gray-100 rounded-xl p-5">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-bold">
-                      {r.studentName[0]}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-sm">{r.studentName}</div>
-                      <StarRating rating={r.rating} size="sm" />
-                    </div>
-                  </div>
-                  {r.comment && <p className="text-sm text-gray-600">{r.comment}</p>}
-                </div>
-              )) : (
-                <div className="text-center py-10 text-gray-400">
-                  <div className="text-4xl mb-3">💬</div>
-                  <p>Chưa có đánh giá nào.</p>
-                </div>
-              )}
-
-              <div className="border-2 border-gray-100 rounded-2xl p-6">
-                <h3 className="font-bold text-base mb-4">✍️ Viết đánh giá</h3>
-                {reviewSent ? (
-                  <p className="text-green-600 font-semibold text-center py-4">🎉 Cảm ơn bạn đã đánh giá!</p>
-                ) : (
-                  <form onSubmit={handleReviewSubmit} className="space-y-4">
-                    <div>
-                      <label className="form-label">Họ tên <span className="text-red-500">*</span></label>
-                      <input className="form-input" type="text" placeholder="Nguyễn Văn A"
-                        value={reviewForm.studentName} onChange={e => setReviewForm(f => ({ ...f, studentName: e.target.value }))} required />
-                    </div>
-                    <div>
-                      <label className="form-label">Đánh giá</label>
-                      <div className="flex gap-2 mt-1">
-                        {[1,2,3,4,5].map(s => (
-                          <button key={s} type="button" onClick={() => setReviewForm(f => ({ ...f, rating: s }))}
-                            className={`text-2xl transition-transform hover:scale-110 bg-transparent border-none cursor-pointer ${s <= reviewForm.rating ? 'text-yellow-400' : 'text-gray-200'}`}>★</button>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="form-label">Nhận xét</label>
-                      <textarea className="form-input resize-y" rows={3} placeholder="Chia sẻ trải nghiệm..."
-                        value={reviewForm.comment} onChange={e => setReviewForm(f => ({ ...f, comment: e.target.value }))} />
-                    </div>
-                    <button type="submit" className="btn btn-primary" disabled={reviewLoading}>
-                      {reviewLoading ? 'Đang gửi...' : 'Gửi đánh giá'}
-                    </button>
-                    {reviewError && (
-                      <p className="text-sm text-red-500 mt-1">{reviewError}</p>
-                    )}
-                  </form>
-                )}
-              </div>
-            </div>
+          {activeTab === 'quizzes' && (
+            <QuizTab courseId={course._id} />
           )}
+
+
         </div>
       </main>
       <Footer />

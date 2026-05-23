@@ -1,13 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import authApi, { Student } from '../api/authApi';
 
 interface AuthContextType {
   student: Student | null;
   loading: boolean;
-  login:   (email: string, password: string) => Promise<void>;
-  register:(fullName: string, email: string, password: string) => Promise<void>;
-  logout:  () => void;
-  updateProfile: (data: { fullName?: string; phone?: string; bio?: string }) => Promise<void>;
+  login:         (email: string, password: string) => Promise<void>;
+  register:      (fullName: string, email: string, password: string) => Promise<void>;
+  logout:        () => void;
+  updateProfile: (data: { fullName?: string; phone?: string; bio?: string; avatar?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -25,33 +25,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .finally(() => setLoading(false));
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     const res = await authApi.login({ email, password });
     localStorage.setItem('student_token', res.token);
     setStudent(res.student);
-  };
+  }, []);
 
-  const register = async (fullName: string, email: string, password: string) => {
+  const register = useCallback(async (fullName: string, email: string, password: string) => {
     const res = await authApi.register({ fullName, email, password });
     localStorage.setItem('student_token', res.token);
     setStudent(res.student);
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('student_token');
     setStudent(null);
-  };
+  }, []);
 
-  const updateProfile = async (data: { fullName?: string; phone?: string; bio?: string }) => {
-    const res = await authApi.updateProfile(data);
-    setStudent(res.student);
-  };
+  const updateProfile = useCallback(async (data: { fullName?: string; phone?: string; bio?: string; avatar?: string }) => {
+    await authApi.updateProfile(data);
+    // Re-fetch full student so enrolledCourses (populated) is preserved in context
+    const fresh = await authApi.getMe();
+    setStudent(fresh.student);
+  }, []);
 
-  return (
-    <AuthContext.Provider value={{ student, loading, login, register, logout, updateProfile }}>
-      {children}
-    </AuthContext.Provider>
+  // Memoize context value — prevents all consumers from re-rendering when
+  // an unrelated parent state changes; only re-renders when student/loading changes
+  const value = useMemo<AuthContextType>(
+    () => ({ student, loading, login, register, logout, updateProfile }),
+    [student, loading, login, register, logout, updateProfile]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {

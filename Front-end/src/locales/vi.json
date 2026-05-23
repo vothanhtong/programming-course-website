@@ -1,0 +1,63 @@
+{
+  "nav": {
+    "courses": "Khóa học",
+    "about": "Về chúng tôi",
+    "students": "Học viên",
+    "contact": "Liên hệ",
+    "login": "Đăng nhập",
+    "register": "Đăng ký"
+  },
+  "hero": {
+    "badge": "🚀 Khai phóng tiềm năng lập trình của bạn",
+    "title": "Học Lập Trình Thực Chiến",
+    "title_highlight": "Cùng Chuyên Gia",
+    "desc": "Tham gia hàng nghìn học viên đã thành công trong việc chuyển đổi sự nghiệp với các khóa học lập trình chất lượng cao của chúng tôi. Học từ các dự án thực tế và chuyên gia trong ngành.",
+    "start_learning": "Bắt đầu học",
+    "view_roadmap": "Xem lộ trình",
+    "students": "Học viên",
+    "lessons": "Bài học",
+    "rating": "Đánh giá"
+  },
+  "features": {
+    "title": "Tại sao chọn chúng tôi?",
+    "f1_title": "Dự án thực tế",
+    "f1_desc": "Học qua việc xây dựng các ứng dụng thực tế. Xây dựng portfolio của bạn trong quá trình học.",
+    "f2_title": "Giảng viên chuyên gia",
+    "f2_desc": "Học từ các kỹ sư phần mềm giàu kinh nghiệm từ các công ty công nghệ hàng đầu.",
+    "f3_title": "Hỗ trợ 24/7",
+    "f3_desc": "Tham gia cộng đồng sôi động của chúng tôi. Nhận trợ giúp bất cứ khi nào bạn bị mắc kẹt.",
+    "f4_title": "Lộ trình rõ ràng",
+    "f4_desc": "Lộ trình học tập từng bước được thiết kế để đưa bạn từ số không thành lập trình viên.",
+    "f5_title": "Giáo viên thực chiến 1 kèm 1",
+    "f5_desc": "Học trực tiếp 1 kèm 1 với kỹ sư phần mềm thực chiến, định hướng và giải đáp mọi thắc mắc."
+  },
+  "courses": {
+    "title": "Khóa học nổi bật",
+    "all_categories": "Tất cả danh mục",
+    "free": "Miễn phí",
+    "lessons": "Bài học",
+    "view_detail": "Xem chi tiết"
+  },
+  "contact": {
+    "title": "Sẵn sàng bắt đầu chưa?",
+    "desc": "Tham gia cùng hàng nghìn học viên và bắt đầu hành trình lập trình của bạn ngay hôm nay.",
+    "start_now": "Bắt đầu ngay"
+  },
+  "footer": {
+    "desc": "Nền tảng học lập trình trực tuyến hàng đầu, giúp bạn xây dựng sự nghiệp vững chắc trong ngành công nghệ thông tin.",
+    "links": "Liên kết",
+    "about": "Về chúng tôi",
+    "courses": "Khóa học",
+    "instructors": "Giảng viên",
+    "contact": "Liên hệ",
+    "legal": "Pháp lý",
+    "terms": "Điều khoản sử dụng",
+    "privacy": "Chính sách bảo mật",
+    "refund": "Chính sách hoàn tiền",
+    "subscribe": "Đăng ký nhận tin",
+    "subscribe_desc": "Nhận thông tin mới nhất về các khóa học và ưu đãi.",
+    "email_placeholder": "Email của bạn",
+    "subscribe_btn": "Đăng ký",
+    "copyright": "Bản quyền thuộc về Khóa Lập Trình. Tất cả các quyền được bảo lưu."
+  }
+}

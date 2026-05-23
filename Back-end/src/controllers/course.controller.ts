@@ -4,15 +4,19 @@ import CategoryModel   from '../models/course.models/category.model';
 import LessonModel     from '../models/course.models/lesson.model';
 import ReviewModel     from '../models/course.models/review.model';
 import EnrollmentModel from '../models/course.models/enrollment.model';
+import ProgressModel   from '../models/course.models/progress.model';
 import MessageModel    from '../models/course.models/message.model';
 import StudentModel    from '../models/student.model';
+import mongoose        from 'mongoose';
 import logger from '../configs/logger';
 import { getStudentId } from '../types';
+import { initializeProgressForEnrollment } from './progress.controller';
 import {
   EMAIL_REGEX, isValidId, getParam, sanitizeStr, escapeRegex,
   VALID_LEVELS, VALID_PAYMENT_STATUSES,
 } from '../utils/validators';
 import type { PaymentStatus } from '../utils/validators';
+import { memoryCache, invalidateAdminStatsCache } from '../utils/cache';
 
 const makeSlug = (title: string): string =>
   title.toLowerCase()
@@ -177,6 +181,8 @@ export const postEnroll = async (req: Request, res: Response): Promise<void> => 
           { _id: studentId },
           { $addToSet: { enrolledCourses: courseId } }
         );
+        // Initialize progress for free course
+        await initializeProgressForEnrollment(studentId, courseId);
       } else {
         // Không đăng nhập → match bằng email
         await StudentModel.updateOne(
@@ -184,21 +190,9 @@ export const postEnroll = async (req: Request, res: Response): Promise<void> => 
           { $addToSet: { enrolledCourses: courseId } }
         );
       }
-    } else {
-      // Khóa học trả phí → thêm vào enrolledCourses ngay để user thấy "đang chờ xác nhận"
-      // Admin confirm paid sẽ không cần update lại vì đã có rồi
-      if (studentId && isValidId(studentId)) {
-        await StudentModel.updateOne(
-          { _id: studentId },
-          { $addToSet: { enrolledCourses: courseId } }
-        );
-      } else {
-        await StudentModel.updateOne(
-          { email: resolvedEmail },
-          { $addToSet: { enrolledCourses: courseId } }
-        );
-      }
     }
+    // Khóa học trả phí → KHÔNG cấp access, chờ admin confirm paid
+    // enrolledCourses chỉ được cập nhật trong adminUpdateEnrollment khi status → paid
 
     res.status(201).json({ message: 'Đăng ký thành công! Chúng tôi sẽ liên hệ với bạn sớm.', enrollmentId: enrollment._id });
   } catch (err) {
@@ -261,6 +255,10 @@ export const adminAddCourse = async (req: Request, res: Response): Promise<void>
     }
     if (!data.slug) data.slug = makeSlug(data.title as string) + '-' + Date.now();
     const course = await CourseModel.create(data);
+    
+    // ⚡ Invalidate stats cache
+    invalidateAdminStatsCache();
+    
     res.status(201).json({ message: 'Thêm khóa học thành công', course });
   } catch (err: any) {
     if (err.code === 11000) { res.status(400).json({ message: 'Slug đã tồn tại' }); return; }
@@ -282,16 +280,43 @@ export const adminUpdateCourse = async (req: Request, res: Response): Promise<vo
 };
 
 export const adminDeleteCourse = async (req: Request, res: Response): Promise<void> => {
+  const session = await mongoose.startSession();
   try {
     const id = getParam(req.params.id);
     if (!isValidId(id)) { res.status(400).json({ message: 'ID không hợp lệ' }); return; }
-    await Promise.all([
-      CourseModel.findByIdAndDelete(id),
-      LessonModel.deleteMany({ courseId: id }),
-      ReviewModel.deleteMany({ courseId: id }),
-    ]);
+
+    await session.withTransaction(async () => {
+      // 1. Xóa course — nếu không tồn tại thì abort
+      const course = await CourseModel.findByIdAndDelete(id, { session });
+      if (!course) throw Object.assign(new Error('Không tìm thấy khóa học'), { status: 404 });
+
+      // 2. Xóa tất cả dữ liệu liên quan song song
+      await Promise.all([
+        LessonModel.deleteMany({ courseId: id }, { session }),
+        ReviewModel.deleteMany({ courseId: id }, { session }),
+        EnrollmentModel.deleteMany({ courseId: id }, { session }),
+        ProgressModel.deleteMany({ courseId: id }, { session }),
+      ]);
+
+      // 3. Xóa courseId khỏi enrolledCourses của tất cả students
+      await StudentModel.updateMany(
+        { enrolledCourses: new mongoose.Types.ObjectId(id) },
+        { $pull: { enrolledCourses: new mongoose.Types.ObjectId(id) } },
+        { session }
+      );
+    });
+
+    // ⚡ Invalidate stats cache
+    invalidateAdminStatsCache();
+
     res.json({ message: 'Xóa khóa học thành công' });
-  } catch (err) { logger.error('[adminDeleteCourse]', err); res.status(500).json({ message: 'Lỗi server' }); }
+  } catch (err: any) {
+    logger.error('[adminDeleteCourse]', err);
+    if (err.status === 404) { res.status(404).json({ message: err.message }); return; }
+    res.status(500).json({ message: 'Lỗi server' });
+  } finally {
+    await session.endSession();
+  }
 };
 
 export const adminGetEnrollments = async (req: Request, res: Response): Promise<void> => {
@@ -356,6 +381,8 @@ export const adminUpdateEnrollment = async (req: Request, res: Response): Promis
         { email: enrollment.studentEmail },
         { $addToSet: { enrolledCourses: enrollment.courseId } }
       );
+      // ⚡ Invalidate stats cache (enrollment count changed)
+      invalidateAdminStatsCache();
     }
     // Khi hủy paid → giảm enrollmentCount
     if (wasPaid && !nowPaid) {
@@ -364,6 +391,8 @@ export const adminUpdateEnrollment = async (req: Request, res: Response): Promis
         { email: enrollment.studentEmail },
         { $pull: { enrolledCourses: enrollment.courseId } }
       );
+      // ⚡ Invalidate stats cache
+      invalidateAdminStatsCache();
     }
 
     res.json({ message: 'Cập nhật thành công', enrollment });
@@ -391,6 +420,7 @@ export const adminGetReviews = async (req: Request, res: Response): Promise<void
 export const adminApproveReview = async (req: Request, res: Response): Promise<void> => {
   try {
     const id = getParam(req.params.id);
+    if (!isValidId(id)) { res.status(400).json({ message: 'ID không hợp lệ' }); return; }
     const review = await ReviewModel.findByIdAndUpdate(id, { isApproved: true }, { new: true });
     if (!review) { res.status(404).json({ message: 'Không tìm thấy' }); return; }
 
@@ -473,6 +503,20 @@ export const adminDeleteCategory = async (req: Request, res: Response): Promise<
 
 export const adminGetStats = async (_req: Request, res: Response): Promise<void> => {
   try {
+    // ⚡ OPTIMIZATION: Cache stats for 5 minutes to reduce DB load
+    const CACHE_KEY = 'admin:stats';
+    const CACHE_TTL = 300; // 5 minutes
+
+    // Try to get from cache first
+    const cached = memoryCache.get<any>(CACHE_KEY);
+    if (cached) {
+      logger.debug('[adminGetStats] Cache hit');
+      res.json(cached);
+      return;
+    }
+
+    // Cache miss - fetch from database
+    logger.debug('[adminGetStats] Cache miss - fetching from DB');
     const [totalCourses, totalEnrollments, revenueAgg, pendingReviews, unreadMessages] = await Promise.all([
       CourseModel.countDocuments(),
       EnrollmentModel.countDocuments(),
@@ -480,8 +524,23 @@ export const adminGetStats = async (_req: Request, res: Response): Promise<void>
       ReviewModel.countDocuments({ isApproved: false }),
       MessageModel.countDocuments({ isRead: false }),
     ]);
-    res.json({ totalCourses, totalEnrollments, totalRevenue: revenueAgg[0]?.total || 0, pendingReviews, unreadMessages });
-  } catch (err) { logger.error('[adminGetStats]', err); res.status(500).json({ message: 'Lỗi server' }); }
+
+    const stats = {
+      totalCourses,
+      totalEnrollments,
+      totalRevenue: revenueAgg[0]?.total || 0,
+      pendingReviews,
+      unreadMessages,
+    };
+
+    // Store in cache
+    memoryCache.set(CACHE_KEY, stats, CACHE_TTL);
+
+    res.json(stats);
+  } catch (err) {
+    logger.error('[adminGetStats]', err);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
 };
 
 export const adminGetLessons = async (req: Request, res: Response): Promise<void> => {
@@ -510,6 +569,7 @@ export const adminAddLesson = async (req: Request, res: Response): Promise<void>
 export const adminUpdateLesson = async (req: Request, res: Response): Promise<void> => {
   try {
     const id = getParam(req.params.id);
+    if (!isValidId(id)) { res.status(400).json({ message: 'ID không hợp lệ' }); return; }
     const data = pickFields(req.body, LESSON_ALLOWED_FIELDS);
     delete (data as any).courseId; // không cho đổi courseId
     const lesson = await LessonModel.findByIdAndUpdate(id, data, { new: true, runValidators: true });
@@ -520,7 +580,9 @@ export const adminUpdateLesson = async (req: Request, res: Response): Promise<vo
 
 export const adminDeleteLesson = async (req: Request, res: Response): Promise<void> => {
   try {
-    const lesson = await LessonModel.findByIdAndDelete(getParam(req.params.id));
+    const id = getParam(req.params.id);
+    if (!isValidId(id)) { res.status(400).json({ message: 'ID không hợp lệ' }); return; }
+    const lesson = await LessonModel.findByIdAndDelete(id);
     if (lesson) {
       const count = await LessonModel.countDocuments({ courseId: lesson.courseId });
       await CourseModel.updateOne({ _id: lesson.courseId }, { totalLessons: count });

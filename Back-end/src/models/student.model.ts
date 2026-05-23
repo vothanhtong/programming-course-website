@@ -6,7 +6,7 @@ export interface IStudent extends Document {
   email: string;
   password: string;
   phone?: string;
-  avatar?: string;
+  avatar?: string; // URL or path to avatar image
   bio?: string;
   isVerified: boolean;
   verifyToken?: string;
@@ -15,6 +15,7 @@ export interface IStudent extends Document {
   resetTokenExpiry?: Date;
   enrolledCourses: mongoose.Types.ObjectId[];
   createdAt: Date;
+  updatedAt: Date;
   comparePassword(plain: string): Promise<boolean>;
 }
 
@@ -24,7 +25,7 @@ const studentSchema = new Schema<IStudent>(
     email:             { type: String, required: true, unique: true, trim: true, lowercase: true },
     password:          { type: String, required: true, minlength: 6, maxlength: 128 },
     phone:             { type: String, default: '' },
-    avatar:            { type: String, default: '' },
+    avatar:            { type: String, default: '', trim: true },
     bio:               { type: String, default: '' },
     isVerified:        { type: Boolean, default: false },
     verifyToken:       { type: String, default: null },

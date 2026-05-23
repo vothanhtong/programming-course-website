@@ -35,7 +35,7 @@ export const sendMail = async (options: MailOptions): Promise<boolean> => {
   }
   try {
     await t.sendMail({
-      from:    process.env.EMAIL_FROM || '"High Sky" <noreply@highsky.vn>',
+      from:    process.env.EMAIL_FROM || '"Khóa Lập Trình" <noreply@khoalaptrinh.vn>',
       to:      options.to,
       subject: options.subject,
       html:    options.html,
@@ -59,11 +59,11 @@ const baseLayout = (headerBg: string, title: string, body: string): string => `<
 <table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
 <tr><td style="background:${headerBg};padding:32px 40px;text-align:center;">
   <h1 style="margin:0;color:#fff;font-size:24px;font-weight:700;">${title}</h1>
-  <p style="margin:8px 0 0;color:rgba(255,255,255,0.8);font-size:14px;">High Sky | Sky Growth</p>
+  <p style="margin:8px 0 0;color:rgba(255,255,255,0.8);font-size:14px;">Khóa Lập Trình</p>
 </td></tr>
 <tr><td style="padding:40px;">${body}</td></tr>
 <tr><td style="background:#fafafa;padding:20px 40px;text-align:center;border-top:1px solid #f0f0f0;">
-  <p style="margin:0;color:#bbb;font-size:12px;">&#169; ${year()} High Sky | Sky Growth.</p>
+  <p style="margin:0;color:#bbb;font-size:12px;">&#169; ${year()} Khóa Lập Trình.</p>
 </td></tr>
 </table>
 </td></tr>

@@ -5,15 +5,17 @@ const mockRes = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn().mockRet
 const mockReq = (overrides: Partial<Request> = {}): Request =>
   ({ query: {}, params: {}, body: {}, headers: {}, ...overrides } as unknown as Request);
 
-// Mock message.model để tránh OverwriteModelError khi import nhiều lần
+// Mock message.model và progress.model để tránh OverwriteModelError khi import nhiều lần
 const mockAllModels = () => {
-  vi.doMock('../models/course.models/course.model',     () => ({ default: { create: vi.fn(), find: vi.fn(), findById: vi.fn(), findByIdAndUpdate: vi.fn(), findByIdAndDelete: vi.fn(), countDocuments: vi.fn(), updateOne: vi.fn(), aggregate: vi.fn() } }));
+  vi.doMock('../models/course.models/course.model',     () => ({ default: { create: vi.fn(), find: vi.fn(), findById: vi.fn(), findByIdAndUpdate: vi.fn(), findByIdAndDelete: vi.fn(), countDocuments: vi.fn(), updateOne: vi.fn(), updateMany: vi.fn(), aggregate: vi.fn() } }));
   vi.doMock('../models/course.models/category.model',   () => ({ default: { find: vi.fn(), create: vi.fn(), findByIdAndDelete: vi.fn() } }));
   vi.doMock('../models/course.models/lesson.model',     () => ({ default: { find: vi.fn(), create: vi.fn(), findByIdAndUpdate: vi.fn(), findByIdAndDelete: vi.fn(), countDocuments: vi.fn(), deleteMany: vi.fn() } }));
   vi.doMock('../models/course.models/review.model',     () => ({ default: { find: vi.fn(), create: vi.fn(), findByIdAndUpdate: vi.fn(), findByIdAndDelete: vi.fn(), countDocuments: vi.fn(), deleteMany: vi.fn(), aggregate: vi.fn() } }));
-  vi.doMock('../models/course.models/enrollment.model', () => ({ default: { find: vi.fn(), create: vi.fn(), findById: vi.fn(), findByIdAndUpdate: vi.fn(), findOne: vi.fn().mockReturnValue({ lean: vi.fn().mockResolvedValue(null) }), countDocuments: vi.fn(), aggregate: vi.fn() } }));
+  vi.doMock('../models/course.models/enrollment.model', () => ({ default: { find: vi.fn(), create: vi.fn(), findById: vi.fn(), findByIdAndUpdate: vi.fn(), findOne: vi.fn().mockReturnValue({ lean: vi.fn().mockResolvedValue(null) }), countDocuments: vi.fn(), aggregate: vi.fn(), deleteMany: vi.fn() } }));
   vi.doMock('../models/course.models/message.model',    () => ({ default: { countDocuments: vi.fn().mockResolvedValue(0) } }));
-  vi.doMock('../models/student.model',                  () => ({ default: { updateOne: vi.fn(), findById: vi.fn() } }));
+  vi.doMock('../models/course.models/progress.model',   () => ({ default: { deleteMany: vi.fn(), findOne: vi.fn(), create: vi.fn() } }));
+  vi.doMock('../models/student.model',                  () => ({ default: { updateOne: vi.fn(), findById: vi.fn(), updateMany: vi.fn() } }));
+  vi.doMock('../controllers/progress.controller',       () => ({ initializeProgressForEnrollment: vi.fn().mockResolvedValue(undefined) }));
 };
 
 describe('postEnroll - validation', () => {

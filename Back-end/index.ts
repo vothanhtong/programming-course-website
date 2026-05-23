@@ -10,12 +10,14 @@ import rateLimit from 'express-rate-limit';
 import compression from 'compression';
 import logger from './src/configs/logger';
 import { MAX_SIZE_JSON_REQUEST } from './src/constants';
-import courseApi   from './src/apis/course.api';
-import categoryApi from './src/apis/category.api';
-import adminApi    from './src/apis/admin.api';
-import authApi     from './src/apis/auth.api';
-import uploadApi   from './src/apis/upload.api';
-import messageApi  from './src/apis/message.api';
+import courseApi    from './src/apis/course.api';
+import categoryApi  from './src/apis/category.api';
+import adminApi     from './src/apis/admin.api';
+import authApi      from './src/apis/auth.api';
+import uploadApi    from './src/apis/upload.api';
+import messageApi   from './src/apis/message.api';
+import progressApi  from './src/apis/progress.api';
+import quizApi      from './src/apis/quiz.api';
 
 const app    = express();
 const PORT   = parseInt(process.env.PORT || '5001', 10);
@@ -41,7 +43,7 @@ app.use(helmet({
 
 // ── NoSQL injection protection ────────────────────────────
 // express-mongo-sanitize không tương thích với Express 5 (req.query là getter-only)
-// Thay bằng middleware thủ công strip ký tự $ và . khỏi body/params
+// Thay bằng middleware thủ công strip ký tự $ và . khỏi body/params/query
 app.use((req: Request, _res: Response, next: NextFunction) => {
   const sanitize = (obj: unknown): unknown => {
     if (obj && typeof obj === 'object') {
@@ -55,8 +57,27 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
     }
     return obj;
   };
-  if (req.body) sanitize(req.body);
+
+  if (req.body)   sanitize(req.body);
   if (req.params) sanitize(req.params);
+
+  // req.query là getter-only trong Express 5 — không thể assign trực tiếp
+  // Sanitize từng value trong query object thay vì replace toàn bộ object
+  if (req.query && typeof req.query === 'object') {
+    for (const key of Object.keys(req.query)) {
+      if (key.startsWith('$') || key.includes('.')) {
+        // Xóa key nguy hiểm bằng cách set undefined (Express cho phép)
+        (req.query as Record<string, unknown>)[key] = undefined;
+      } else {
+        const val = req.query[key];
+        if (typeof val === 'string' && (val.startsWith('{') || val.includes('$'))) {
+          // Strip $ từ string values
+          (req.query as Record<string, unknown>)[key] = val.replace(/\$/g, '');
+        }
+      }
+    }
+  }
+
   next();
 });
 
@@ -138,25 +159,6 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
   etag: true,
 }));
 
-// ── Routes ────────────────────────────────────────────────
-app.get('/health', (_req: Request, res: Response) => res.json({
-  status: 'ok',
-  server: 'High Sky | Sky Growth API',
-  db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-  time: new Date().toISOString(),
-}));
-
-app.use('/apis/admin/login',    authLimiter);
-app.use('/apis/courses/enroll', enrollLimiter);
-app.use('/apis/messages',       messageLimiter);
-
-app.use('/apis/courses',    courseApi);
-app.use('/apis/categories', categoryApi);
-app.use('/apis/admin',      adminApi);
-app.use('/apis/auth',       authApi);
-app.use('/apis/upload',     uploadApi);
-app.use('/apis/messages',   messageApi);
-
 // Production: serve frontend build
 if (isProd) {
   app.use(express.static(path.join(__dirname, 'public')));
@@ -164,6 +166,21 @@ if (isProd) {
     res.sendFile(path.join(__dirname, 'public', 'index.html'))
   );
 }
+
+// ── API Routes ────────────────────────────────────────────
+app.use('/apis/auth', authApi);
+app.use('/apis/admin', adminApi);
+app.use('/apis/courses', courseApi);
+app.use('/apis/categories', categoryApi);
+app.use('/apis/upload', uploadApi);
+app.use('/apis/messages', messageApi);
+app.use('/apis/progress', progressApi);
+app.use('/apis/quizzes', quizApi);
+
+app.get('/health', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'OK', timestamp: new Date() });
+});
+
 
 // ── Global error handler ──────────────────────────────────
 app.use((err: Error & { status?: number }, req: Request, res: Response, _next: NextFunction) => {
@@ -176,7 +193,7 @@ app.use((err: Error & { status?: number }, req: Request, res: Response, _next: N
 // ── Start ─────────────────────────────────────────────────
 app.listen(PORT, () => {
   logger.info('═'.repeat(50));
-  logger.info('  🚀 HIGH SKY | SKY GROWTH - API Server');
+  logger.info('  🚀 KHÓA LẬP TRÌNH - API Server');
   logger.info('═'.repeat(50));
   logger.info(`  ✅ Server  : http://localhost:${PORT}`);
   logger.info(`  ❤️  Health  : http://localhost:${PORT}/health`);

@@ -79,6 +79,7 @@ const Categories = () => {
           rowKey="_id"
           loading={loading}
           pagination={{ pageSize: 20 }}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
 
@@ -87,6 +88,8 @@ const Categories = () => {
         open={modalOpen}
         onCancel={() => { setModalOpen(false); form.resetFields(); }}
         footer={null}
+        width="100%"
+        style={{ maxWidth: 520, top: 20 }}
         destroyOnClose
       >
         <Form form={form} layout="vertical" onFinish={handleAdd} style={{ marginTop: 16 }}>

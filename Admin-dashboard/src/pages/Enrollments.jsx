@@ -192,7 +192,7 @@ const Enrollments = () => {
             onChange: (p) => { setPage(p); fetchEnrollments(p); },
             showTotal: (t) => `Tổng ${t} đăng ký`,
           }}
-          scroll={{ x: 1000 }}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
 
@@ -202,6 +202,8 @@ const Enrollments = () => {
         open={editOpen}
         onCancel={() => setEditOpen(false)}
         footer={null}
+        width="100%"
+        style={{ maxWidth: 520, top: 20 }}
         destroyOnClose
       >
         <Form form={editForm} layout="vertical" onFinish={handleEdit} style={{ marginTop: 16 }}>

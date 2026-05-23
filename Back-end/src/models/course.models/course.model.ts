@@ -48,7 +48,7 @@ const courseSchema = new Schema<ICourse>(
     salePrice:        { type: Number, default: null, min: 0 },
     category:         { type: Schema.Types.ObjectId, ref: 'category', required: true },
     instructor: {
-      name:   { type: String, default: 'High Sky Instructor' },
+      name:   { type: String, default: 'Giảng viên Khóa Lập Trình' },
       avatar: { type: String, default: '' },
       bio:    { type: String, default: '' },
     },
@@ -72,6 +72,6 @@ const courseSchema = new Schema<ICourse>(
 courseSchema.index({ category: 1, isPublished: 1 });
 courseSchema.index({ isFeatured: 1, isPublished: 1 });
 courseSchema.index({ tags: 1 });
-courseSchema.index({ title: 'text' });
+courseSchema.index({ title: 'text' }, { default_language: 'none', language_override: 'mongoLanguage' });
 
 export default mongoose.model<ICourse>('course', courseSchema, 'courses');

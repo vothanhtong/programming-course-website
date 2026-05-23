@@ -201,7 +201,7 @@ const AdminProfile = () => {
           {/* ── Profile tab ── */}
           {tab === 'profile' && (
             <form onSubmit={handleProfileSave}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, maxWidth: 600 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16, maxWidth: 600 }}>
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={labelStyle}>Ảnh đại diện</label>
                   <ImageUploader

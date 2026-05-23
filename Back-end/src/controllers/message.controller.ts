@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import MessageModel from '../models/course.models/message.model';
+import StudentModel from '../models/student.model';
 import logger from '../configs/logger';
 import { isValidId, getParam, sanitizeStr, EMAIL_REGEX } from '../utils/validators';
+import { invalidateAdminStatsCache } from '../utils/cache';
 
 // ── PUBLIC ────────────────────────────────────────────────
 
@@ -44,22 +46,56 @@ export const postMessage = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
-// ── PUBLIC: Student lấy lịch sử chat theo email ──────────
+// ── PROTECTED: Student lấy lịch sử chat của chính mình ──
 export const getMessagesByEmail = async (req: Request, res: Response): Promise<void> => {
   try {
-    const email = sanitizeStr(req.query.email as string, 200).toLowerCase();
-    if (!email || !EMAIL_REGEX.test(email)) {
-      res.status(400).json({ message: 'Email không hợp lệ' });
+    // studentId đã được gắn bởi studentAuthentication middleware
+    const studentId = (req as any).studentId as string | undefined;
+    if (!studentId || !isValidId(studentId)) {
+      res.status(401).json({ message: 'Chưa đăng nhập' });
       return;
     }
 
-    const messages = await MessageModel.find({ email })
+    // Lấy email từ tài khoản — không tin vào query param để tránh IDOR
+    const student = await StudentModel.findById(studentId).select('email').lean();
+    if (!student) {
+      res.status(404).json({ message: 'Không tìm thấy tài khoản' });
+      return;
+    }
+
+    // ⚡ OPTIMIZATION: Cursor-based pagination
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const cursor = req.query.cursor as string | undefined;
+
+    const filter: Record<string, unknown> = { email: student.email };
+    
+    // If cursor provided, fetch messages older than cursor
+    if (cursor && isValidId(cursor)) {
+      const cursorMessage = await MessageModel.findById(cursor).select('createdAt').lean();
+      if (cursorMessage) {
+        filter.createdAt = { $lt: cursorMessage.createdAt };
+      }
+    }
+
+    const messages = await MessageModel.find(filter)
       .select('name message adminReply repliedAt isRead createdAt')
       .sort({ createdAt: -1 })
-      .limit(50)
+      .limit(limit + 1) // Fetch one extra to check if there are more
       .lean();
 
-    res.json({ messages });
+    // Check if there are more messages
+    const hasMore = messages.length > limit;
+    const resultMessages = hasMore ? messages.slice(0, limit) : messages;
+    const nextCursor = hasMore && resultMessages.length > 0 
+      ? resultMessages[resultMessages.length - 1]._id.toString() 
+      : null;
+
+    res.json({ 
+      messages: resultMessages,
+      hasMore,
+      nextCursor,
+      total: resultMessages.length,
+    });
   } catch (err) {
     logger.error('[getMessagesByEmail]', err);
     res.status(500).json({ message: 'Lỗi server' });
@@ -100,6 +136,9 @@ export const adminMarkRead = async (req: Request, res: Response): Promise<void> 
 
     const message = await MessageModel.findByIdAndUpdate(id, { isRead: true }, { new: true });
     if (!message) { res.status(404).json({ message: 'Không tìm thấy tin nhắn' }); return; }
+
+    // ⚡ Invalidate stats cache (unread count changed)
+    invalidateAdminStatsCache();
 
     res.json({ message: 'Đã đánh dấu đã đọc', data: message });
   } catch (err) {

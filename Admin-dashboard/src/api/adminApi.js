@@ -43,6 +43,12 @@ const adminApi = {
   approveReview: (id)     => axiosClient.put(`${BASE}/reviews/${id}/approve`),
   deleteReview:  (id)     => axiosClient.delete(`${BASE}/reviews/${id}`),
 
+  // ── Quizzes ────────────────────────────────────────────
+  getQuizzes:    (params)     => axiosClient.get(`/apis/quizzes/admin`, { params }),
+  addQuiz:       (data)       => axiosClient.post(`/apis/quizzes/admin`, data),
+  updateQuiz:    (id, data)   => axiosClient.put(`/apis/quizzes/admin/${id}`, data),
+  deleteQuiz:    (id)         => axiosClient.delete(`/apis/quizzes/admin/${id}`),
+
   // ── Student management ─────────────────────────────────
   getStudents:          (params)     => axiosClient.get(`${BASE}/students`, { params }),
   getStudentDetail:     (id)         => axiosClient.get(`${BASE}/students/${id}`),

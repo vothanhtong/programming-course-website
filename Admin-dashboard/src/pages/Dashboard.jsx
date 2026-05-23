@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Spin } from 'antd';
 import {
-  BookOutlined, TeamOutlined, DollarOutlined, StarOutlined,
+  BookOutlined, TeamOutlined, DollarOutlined, MessageOutlined,
   RiseOutlined,
 } from '@ant-design/icons';
 import {
@@ -49,7 +49,7 @@ const statCards = [
   {
     key: 'unreadMessages',
     title: 'Tin nhắn chưa đọc',
-    icon: <StarOutlined style={{ fontSize: 26 }} />,
+    icon: <MessageOutlined style={{ fontSize: 26 }} />,
     color: '#f472b6',
     glow: 'rgba(236,72,153,0.2)',
     border: 'rgba(236,72,153,0.3)',
@@ -76,23 +76,47 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const Dashboard = () => {
-  const [stats, setStats]     = useState(null);
-  const [chart, setChart]     = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState('');
+  const [stats, setStats]         = useState(null);
+  const [chart, setChart]         = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState('');
+  const [retryCount, setRetryCount] = useState(0);
+  const [isMobile, setIsMobile]   = useState(false);
 
   useEffect(() => {
+    const mql = window.matchMedia('(max-width: 1024px)');
+    setIsMobile(mql.matches);
+    const handler = (e) => setIsMobile(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    setLoading(true);
+    setError('');
+
     Promise.all([
       adminApi.getStats(),
       adminApi.getEnrollmentsByMonth().catch(() => ({ data: [] })),
     ])
       .then(([s, c]) => {
+        if (cancelled) return;
         setStats(s);
         setChart(c.data || []);
       })
-      .catch(() => setError('Không thể tải dữ liệu thống kê. Vui lòng thử lại.'))
-      .finally(() => setLoading(false));
-  }, []);
+      .catch(() => {
+        if (cancelled) return;
+        setError('Không thể tải dữ liệu thống kê. Vui lòng thử lại.');
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [retryCount]);
 
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
@@ -106,7 +130,7 @@ const Dashboard = () => {
         <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
         <p>{error}</p>
         <button
-          onClick={() => { setError(''); setLoading(true); }}
+          onClick={() => setRetryCount(c => c + 1)}
           style={{ marginTop: 12, padding: '8px 20px', borderRadius: 8, border: '1px solid rgba(59,130,246,0.4)', background: 'transparent', color: '#60a5fa', cursor: 'pointer' }}
         >
           Thử lại
@@ -186,7 +210,7 @@ const Dashboard = () => {
       </div>
 
       {/* ── Charts row ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) minmax(280px, 340px)', gap: 16 }}>
 
         {/* Bar chart */}
         <div style={{ ...card, padding: '24px 24px 16px' }}>

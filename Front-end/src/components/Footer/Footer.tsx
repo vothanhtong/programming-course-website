@@ -1,10 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import Logo from '../Navbar/Logo';
 
-const footerLinks = {
-  'Khóa học': ['Lập trình Web', 'Mobile App', 'Data Science', 'DevOps', 'AI & Machine Learning'],
-  'Hỗ trợ':  ['Trung tâm hỗ trợ', 'Chính sách hoàn tiền', 'Điều khoản sử dụng', 'Chính sách bảo mật'],
-};
+// Removed static footerLinks to use translations inside the component
 
 const socials = [
   { 
@@ -49,21 +47,27 @@ const socials = [
   },
 ];
 
-const Footer: React.FC = () => (
-  <footer style={{ background: '#020817', borderTop: '1px solid rgba(59,130,246,0.15)' }}>
+const Footer: React.FC = () => {
+  const { t } = useTranslation();
+
+  const footerLinks = {
+    [t('footer.courses')]: ['Lập trình Web', 'Mobile App', 'Data Science', 'DevOps', 'AI & Machine Learning'],
+    [t('footer.legal')]:  ['Trung tâm hỗ trợ', t('footer.refund'), t('footer.terms'), t('footer.privacy')],
+  };
+
+  return (
+  <footer className="bg-slate-50 dark:bg-navy-950 border-t border-slate-200 dark:border-[rgba(59,130,246,0.15)]">
     {/* Top glow line */}
     <div className="glow-line opacity-60" />
 
     <div className="container pt-16">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 pb-12"
-        style={{ borderBottom: '1px solid rgba(59,130,246,0.1)' }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 pb-12 border-b border-slate-200 dark:border-[rgba(59,130,246,0.1)]">
 
         {/* Brand — chiếm 2 cột trên desktop */}
         <div className="lg:col-span-2">
           <Logo variant="light" size="sm" />
-          <p className="text-sm leading-relaxed mt-4 mb-6" style={{ color: '#475569' }}>
-            Nền tảng đào tạo lập trình online uy tín tại Việt Nam.
-            Học dễ hiểu – Ứng dụng thực tế.
+          <p className="text-sm leading-relaxed mt-4 mb-6 text-slate-600 dark:text-slate-400">
+            {t('footer.desc')}
           </p>
           <div className="flex gap-2.5">
             {socials.map((s) => (
@@ -96,14 +100,11 @@ const Footer: React.FC = () => (
         {/* Links */}
         {Object.entries(footerLinks).map(([title, links]) => (
           <div key={title}>
-            <h4 className="text-sm font-bold mb-5" style={{ color: '#e2e8f0' }}>{title}</h4>
+            <h4 className="text-sm font-bold mb-5 text-slate-900 dark:text-slate-200">{title}</h4>
             <ul className="list-none flex flex-col gap-2.5">
               {links.map((link) => (
                 <li key={link}>
-                  <a href="#" className="text-sm no-underline transition-colors duration-200"
-                    style={{ color: '#475569' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#60a5fa'; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#475569'; }}>
+                  <a href="#" className="text-sm no-underline transition-colors duration-200 text-slate-600 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400">
                     {link}
                   </a>
                 </li>
@@ -113,17 +114,14 @@ const Footer: React.FC = () => (
         ))}
       </div>
 
-      <div className="py-6 flex flex-col items-center gap-2 text-center"
-        style={{ color: '#475569' }}>
-        <p className="text-sm" style={{ color: '#475569' }}>
-          © 2025 <span style={{ color: '#60a5fa', fontWeight: 600 }}>Khóa Học Lập Trình</span>
-        </p>
-        <p className="text-xs" style={{ color: '#475569' }}>
-          Sản phẩm thuộc quản lý của Công ty TNHH một thành viên. Tất cả quyền được bảo lưu.
+      <div className="py-6 flex flex-col items-center gap-2 text-center text-slate-500 dark:text-slate-400">
+        <p className="text-sm">
+          {t('footer.copyright')}
         </p>
       </div>
     </div>
   </footer>
-);
+  );
+};
 
 export default Footer;

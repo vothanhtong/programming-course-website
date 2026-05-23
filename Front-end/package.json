@@ -1,7 +1,7 @@
 {
   "name": "highsky-frontend",
   "version": "1.0.0",
-  "description": "High Sky | Sky Growth - Marketing Website",
+  "description": "Khóa Lập Trình - Marketing Website",
   "main": "index.js",
   "scripts": {
     "start": "webpack serve --mode development --port 8080",
@@ -9,7 +9,7 @@
     "dev": "webpack serve --mode development --port 8080",
     "type-check": "tsc --noEmit"
   },
-  "author": "High Sky",
+  "author": "Khóa Lập Trình",
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.23.0",
@@ -38,8 +38,10 @@
   },
   "dependencies": {
     "axios": "^1.6.7",
+    "i18next": "^26.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-i18next": "^17.0.8",
     "react-router-dom": "^7.1.5"
   }
 }

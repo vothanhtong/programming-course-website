@@ -273,7 +273,7 @@ const Messages = () => {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 26, fontWeight: 800, color: '#e2e8f0', margin: 0 }}>
             Tin nhắn tư vấn
@@ -282,7 +282,7 @@ const Messages = () => {
             Quản lý tin nhắn từ khách hàng
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {[
             { key: 'all',    label: 'Tất cả' },
             { key: 'unread', label: 'Chưa đọc' },
@@ -313,7 +313,7 @@ const Messages = () => {
           showSizeChanger: false,
           showTotal: (t) => `Tổng ${t} tin nhắn`,
         }}
-        scroll={{ x: 1100 }}
+        scroll={{ x: 'max-content' }}
         rowClassName={(record) => !record.isRead ? 'unread-row' : ''}
       />
 
@@ -343,7 +343,8 @@ const Messages = () => {
         open={chatModal}
         onCancel={() => { setChatModal(false); setReplyText(''); }}
         footer={null}
-        width={600}
+        width="100%"
+        style={{ maxWidth: 600, top: 20 }}
         styles={{
           body: { padding: 0 },
           content: {
@@ -358,7 +359,7 @@ const Messages = () => {
         }}
       >
         {selectedMsg && (
-          <div style={{ display: 'flex', flexDirection: 'column', height: 500 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', height: 'min(500px, 60vh)' }}>
 
             {/* Chat area */}
             <div style={{

@@ -45,15 +45,17 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     });
 
     const token = signToken(student._id.toString());
+
+    // Populate để trả về đầy đủ thông tin ngay sau đăng ký
+    const populated = await StudentModel.findById(student._id)
+      .select('-password -verifyToken -resetToken -verifyTokenExpiry -resetTokenExpiry')
+      .populate('enrolledCourses', 'title slug thumbnail')
+      .lean();
+
     res.status(201).json({
       message: 'Đăng ký thành công!',
       token,
-      student: {
-        id:       student._id,
-        fullName: student.fullName,
-        email:    student.email,
-        avatar:   student.avatar,
-      },
+      student: populated,
     });
   } catch (err) {
     logger.error('[register]', err);
@@ -81,17 +83,17 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     const token = signToken(student._id.toString());
+
+    // Populate enrolledCourses để frontend có đủ thông tin ngay sau đăng nhập
+    const populated = await StudentModel.findById(student._id)
+      .select('-password -verifyToken -resetToken -verifyTokenExpiry -resetTokenExpiry')
+      .populate('enrolledCourses', 'title slug thumbnail')
+      .lean();
+
     res.json({
       message: 'Đăng nhập thành công!',
       token,
-      student: {
-        id:       student._id,
-        fullName: student.fullName,
-        email:    student.email,
-        avatar:   student.avatar,
-        phone:    student.phone,
-        bio:      student.bio,
-      },
+      student: populated,
     });
   } catch (err) {
     logger.error('[login]', err);
@@ -199,7 +201,7 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
 
     const sent = await sendMail({
       to:      student.email,
-      subject: 'Đặt lại mật khẩu - High Sky',
+      subject: 'Đặt lại mật khẩu - Khóa Lập Trình',
       html:    resetPasswordTemplate(resetUrl, student.fullName),
     });
 
@@ -243,8 +245,8 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
     }
 
     student.password         = newPassword;
-    student.resetToken       = undefined;
-    student.resetTokenExpiry = undefined;
+    student.resetToken       = null as any;
+    student.resetTokenExpiry = null as any;
     await student.save();
 
     res.json({ message: 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập.' });

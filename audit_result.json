@@ -1,0 +1,712 @@
+{
+  "tree": {
+    ".gitignore": 626,
+    "Admin-dashboard": {
+      ".env": 36,
+      "index.html": 783,
+      "logo.png": 948694,
+      "package-lock.json": 125001,
+      "package.json": 591,
+      "src": {
+        "App.js": 2853,
+        "api": {
+          "adminApi.js": 5158,
+          "axiosClient.js": 1218
+        },
+        "components": {
+          "ImageUploader": {
+            "ImageUploader.jsx": 6040
+          },
+          "Layout": {
+            "AdminLayout.jsx": 14088
+          }
+        },
+        "context": {
+          "AuthContext.js": 1735
+        },
+        "index.css": 472,
+        "index.js": 265,
+        "pages": {
+          "AdminProfile.jsx": 14033,
+          "Categories.jsx": 4392,
+          "Courses.jsx": 11628,
+          "Dashboard.jsx": 11066,
+          "Enrollments.jsx": 8243,
+          "Login.jsx": 6293,
+          "Messages.jsx": 15517,
+          "Reviews.jsx": 4673,
+          "Students.jsx": 19023
+        },
+        "theme.js": 5778
+      },
+      "vite.config.js": 1368
+    },
+    "Back-end": {
+      ".env": 1438,
+      "index.ts": 8061,
+      "nodemon.json": 35,
+      "package-lock.json": 180803,
+      "package.json": 1345,
+      "scripts": {
+        "seedDatabase.js": 16511
+      },
+      "src": {
+        "apis": {
+          "admin.api.ts": 3947,
+          "auth.api.ts": 1481,
+          "category.api.ts": 193,
+          "course.api.ts": 974,
+          "message.api.ts": 861,
+          "progress.api.ts": 1145,
+          "upload.api.ts": 6932
+        },
+        "configs": {
+          "jwt.config.ts": 1533,
+          "logger.ts": 731
+        },
+        "constants": {
+          "index.ts": 203
+        },
+        "controllers": {
+          "admin.controller.ts": 20256,
+          "auth.controller.test.ts": 9123,
+          "auth.controller.ts": 10149,
+          "course.controller.test.ts": 10056,
+          "course.controller.ts": 28676,
+          "message.controller.ts": 7734,
+          "progress.controller.ts": 10850
+        },
+        "middlewares": {
+          "adminAuth.middleware.test.ts": 1966,
+          "adminAuth.middleware.ts": 1204,
+          "studentAuth.middleware.test.ts": 1818,
+          "studentAuth.middleware.ts": 1207
+        },
+        "models": {
+          "account.models": {
+            "admin.model.ts": 1349
+          },
+          "course.models": {
+            "category.model.ts": 745,
+            "course.model.ts": 2784,
+            "enrollment.model.ts": 1401,
+            "lesson.model.ts": 1264,
+            "message.model.ts": 1029,
+            "progress.model.ts": 2136,
+            "review.model.ts": 926
+          },
+          "student.model.ts": 1875
+        },
+        "types": {
+          "index.ts": 741
+        },
+        "utils": {
+          "cache.ts": 1315,
+          "mailer.test.ts": 1433,
+          "mailer.ts": 6117,
+          "validators.ts": 1854
+        }
+      },
+      "tsconfig.json": 631,
+      "uploads": {
+        ".gitkeep": 123,
+        "1779039416407-9dde67a35a1c.jpeg": 30035,
+        "1779039464888-9ebf9ce9c6e1.jpeg": 30035
+      },
+      "vitest.config.js": 229
+    },
+    "Front-end": {
+      ".env": 30,
+      "index.html": 914,
+      "logo.png": 948694,
+      "package-lock.json": 296757,
+      "package.json": 1337,
+      "postcss.config.js": 89,
+      "src": {
+        "App.tsx": 2419,
+        "api": {
+          "authApi.ts": 1650,
+          "axiosClient.ts": 1624,
+          "courseApi.ts": 1106,
+          "progressApi.ts": 1836,
+          "uploadApi.ts": 1225
+        },
+        "components": {
+          "Auth": {
+            "AuthInput.tsx": 1363,
+            "AuthLayout.tsx": 2304,
+            "PasswordInput.tsx": 1548
+          },
+          "Contact": {
+            "Contact.tsx": 9092
+          },
+          "CourseCard": {
+            "CourseCard.tsx": 6440
+          },
+          "CoursesSection": {
+            "CoursesSection.tsx": 6546
+          },
+          "EnrollModal": {
+            "EnrollModal.tsx": 9500
+          },
+          "Features": {
+            "Features.tsx": 4386
+          },
+          "FloatingContact": {
+            "FloatingContact.tsx": 4612
+          },
+          "Footer": {
+            "Footer.tsx": 6312
+          },
+          "Hero": {
+            "Hero.tsx": 10515
+          },
+          "ImageUploader": {
+            "ImageUploader.tsx": 3625
+          },
+          "Navbar": {
+            "Logo.tsx": 3348,
+            "Navbar.tsx": 12430
+          },
+          "Skeleton": {
+            "CourseCardSkeleton.tsx": 2342,
+            "CourseDetailSkeleton.tsx": 2796,
+            "StatCardSkeleton.tsx": 492
+          },
+          "Testimonials": {
+            "Testimonials.tsx": 4893
+          }
+        },
+        "context": {
+          "AuthContext.tsx": 2706
+        },
+        "declarations.d.ts": 445,
+        "hooks": {
+          "useAuthInput.ts": 836
+        },
+        "index.tsx": 493,
+        "pages": {
+          "Auth": {
+            "ForgotPasswordPage.tsx": 2267,
+            "LoginPage.tsx": 3361,
+            "RegisterPage.tsx": 3628,
+            "ResetPasswordPage.tsx": 3983
+          },
+          "CourseDetail": {
+            "CourseDetail.tsx": 14824
+          },
+          "Dashboard": {
+            "MyCoursesPage.tsx": 9043,
+            "StudentDashboard.tsx": 6932
+          },
+          "HomePage": {
+            "HomePage.tsx": 696
+          },
+          "NotFound": {
+            "NotFoundPage.tsx": 5006
+          },
+          "Profile": {
+            "ProfilePage.tsx": 26540
+          }
+        },
+        "styles": {
+          "global.css": 4930
+        },
+        "types": {
+          "index.ts": 1827
+        },
+        "utils": {
+          "constants.ts": 1957,
+          "helpers.ts": 2047,
+          "index.ts": 102
+        }
+      },
+      "tailwind.config.js": 2271,
+      "tsconfig.json": 491,
+      "webpack.config.js": 3046
+    },
+    "NOTES.md": 4934,
+    "firebase": {
+      "public": {}
+    }
+  },
+  "files": [
+    "/Users/vothanhtong/Mật /programming course website/.gitignore",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/.env",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/index.html",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/logo.png",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/package-lock.json",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/package.json",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/App.js",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/api/adminApi.js",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/api/axiosClient.js",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/components/ImageUploader/ImageUploader.jsx",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/components/Layout/AdminLayout.jsx",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/context/AuthContext.js",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/index.css",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/index.js",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/AdminProfile.jsx",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Categories.jsx",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Courses.jsx",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Dashboard.jsx",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Enrollments.jsx",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Login.jsx",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Messages.jsx",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Reviews.jsx",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Students.jsx",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/theme.js",
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/vite.config.js",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/.env",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/index.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/nodemon.json",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/package-lock.json",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/package.json",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/scripts/seedDatabase.js",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/admin.api.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/auth.api.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/category.api.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/course.api.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/message.api.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/progress.api.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/upload.api.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/configs/jwt.config.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/configs/logger.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/constants/index.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/admin.controller.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/auth.controller.test.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/auth.controller.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/course.controller.test.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/course.controller.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/message.controller.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/progress.controller.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/middlewares/adminAuth.middleware.test.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/middlewares/adminAuth.middleware.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/middlewares/studentAuth.middleware.test.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/middlewares/studentAuth.middleware.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/account.models/admin.model.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/category.model.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/course.model.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/enrollment.model.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/lesson.model.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/message.model.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/progress.model.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/review.model.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/student.model.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/types/index.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/utils/cache.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/utils/mailer.test.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/utils/mailer.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/src/utils/validators.ts",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/tsconfig.json",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/uploads/.gitkeep",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/uploads/1779039416407-9dde67a35a1c.jpeg",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/uploads/1779039464888-9ebf9ce9c6e1.jpeg",
+    "/Users/vothanhtong/Mật /programming course website/Back-end/vitest.config.js",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/.env",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/index.html",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/logo.png",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/package-lock.json",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/package.json",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/postcss.config.js",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/App.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/authApi.ts",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/axiosClient.ts",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/courseApi.ts",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/progressApi.ts",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/uploadApi.ts",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Auth/AuthInput.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Auth/AuthLayout.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Auth/PasswordInput.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Contact/Contact.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/CourseCard/CourseCard.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/CoursesSection/CoursesSection.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/EnrollModal/EnrollModal.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Features/Features.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/FloatingContact/FloatingContact.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Footer/Footer.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Hero/Hero.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/ImageUploader/ImageUploader.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Navbar/Logo.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Navbar/Navbar.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Skeleton/CourseCardSkeleton.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Skeleton/CourseDetailSkeleton.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Skeleton/StatCardSkeleton.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Testimonials/Testimonials.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/context/AuthContext.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/declarations.d.ts",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/hooks/useAuthInput.ts",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/index.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Auth/ForgotPasswordPage.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Auth/LoginPage.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Auth/RegisterPage.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Auth/ResetPasswordPage.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/CourseDetail/CourseDetail.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Dashboard/MyCoursesPage.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Dashboard/StudentDashboard.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/HomePage/HomePage.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/NotFound/NotFoundPage.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Profile/ProfilePage.tsx",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/styles/global.css",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/types/index.ts",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/utils/constants.ts",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/utils/helpers.ts",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/src/utils/index.ts",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/tailwind.config.js",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/tsconfig.json",
+    "/Users/vothanhtong/Mật /programming course website/Front-end/webpack.config.js",
+    "/Users/vothanhtong/Mật /programming course website/NOTES.md"
+  ],
+  "largeFiles": [
+    {
+      "path": "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/logo.png",
+      "size": 948694
+    },
+    {
+      "path": "/Users/vothanhtong/Mật /programming course website/Front-end/logo.png",
+      "size": 948694
+    }
+  ],
+  "duplicates": [
+    [
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/logo.png",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/logo.png"
+    ],
+    [
+      "/Users/vothanhtong/Mật /programming course website/Back-end/uploads/1779039416407-9dde67a35a1c.jpeg",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/uploads/1779039464888-9ebf9ce9c6e1.jpeg"
+    ]
+  ],
+  "categories": {
+    "frontend": [
+      "/Users/vothanhtong/Mật /programming course website/Front-end/.env",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/index.html",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/logo.png",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/package-lock.json",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/package.json",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/postcss.config.js",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/App.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/authApi.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/axiosClient.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/courseApi.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/progressApi.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/uploadApi.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Auth/AuthInput.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Auth/AuthLayout.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Auth/PasswordInput.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Contact/Contact.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/CourseCard/CourseCard.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/CoursesSection/CoursesSection.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/EnrollModal/EnrollModal.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Features/Features.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/FloatingContact/FloatingContact.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Footer/Footer.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Hero/Hero.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/ImageUploader/ImageUploader.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Navbar/Logo.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Navbar/Navbar.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Skeleton/CourseCardSkeleton.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Skeleton/CourseDetailSkeleton.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Skeleton/StatCardSkeleton.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Testimonials/Testimonials.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/context/AuthContext.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/declarations.d.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/hooks/useAuthInput.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/index.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Auth/ForgotPasswordPage.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Auth/LoginPage.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Auth/RegisterPage.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Auth/ResetPasswordPage.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/CourseDetail/CourseDetail.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Dashboard/MyCoursesPage.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Dashboard/StudentDashboard.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/HomePage/HomePage.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/NotFound/NotFoundPage.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Profile/ProfilePage.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/styles/global.css",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/types/index.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/utils/constants.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/utils/helpers.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/utils/index.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/tailwind.config.js",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/tsconfig.json",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/webpack.config.js"
+    ],
+    "backend": [
+      "/Users/vothanhtong/Mật /programming course website/Back-end/.env",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/index.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/nodemon.json",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/package-lock.json",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/package.json",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/scripts/seedDatabase.js",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/admin.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/auth.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/category.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/course.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/message.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/progress.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/upload.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/configs/jwt.config.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/configs/logger.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/constants/index.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/admin.controller.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/auth.controller.test.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/auth.controller.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/course.controller.test.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/course.controller.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/message.controller.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/progress.controller.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/middlewares/adminAuth.middleware.test.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/middlewares/adminAuth.middleware.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/middlewares/studentAuth.middleware.test.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/middlewares/studentAuth.middleware.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/account.models/admin.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/category.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/course.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/enrollment.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/lesson.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/message.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/progress.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/review.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/student.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/types/index.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/utils/cache.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/utils/mailer.test.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/utils/mailer.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/utils/validators.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/tsconfig.json",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/uploads/.gitkeep",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/uploads/1779039416407-9dde67a35a1c.jpeg",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/uploads/1779039464888-9ebf9ce9c6e1.jpeg",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/vitest.config.js"
+    ],
+    "auth": [
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/context/AuthContext.js",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/auth.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/auth.controller.test.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/auth.controller.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/middlewares/adminAuth.middleware.test.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/middlewares/adminAuth.middleware.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/middlewares/studentAuth.middleware.test.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/middlewares/studentAuth.middleware.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/authApi.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Auth/AuthInput.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Auth/AuthLayout.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/Auth/PasswordInput.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/context/AuthContext.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/hooks/useAuthInput.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Auth/ForgotPasswordPage.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Auth/LoginPage.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Auth/RegisterPage.tsx",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Auth/ResetPasswordPage.tsx"
+    ],
+    "socket": [],
+    "api": [
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/api/adminApi.js",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/api/axiosClient.js",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/admin.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/auth.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/category.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/course.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/message.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/progress.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/upload.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/admin.controller.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/auth.controller.test.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/auth.controller.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/course.controller.test.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/course.controller.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/message.controller.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/progress.controller.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/authApi.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/axiosClient.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/courseApi.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/progressApi.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/uploadApi.ts"
+    ],
+    "upload": [
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/components/ImageUploader/ImageUploader.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/upload.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/uploads/.gitkeep",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/uploads/1779039416407-9dde67a35a1c.jpeg",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/uploads/1779039464888-9ebf9ce9c6e1.jpeg",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/api/uploadApi.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/components/ImageUploader/ImageUploader.tsx"
+    ],
+    "database": [
+      "/Users/vothanhtong/Mật /programming course website/Back-end/scripts/seedDatabase.js",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/account.models/admin.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/category.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/course.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/enrollment.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/lesson.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/message.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/progress.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/review.model.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/student.model.ts"
+    ],
+    "admin": [
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/.env",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/index.html",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/logo.png",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/package-lock.json",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/package.json",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/App.js",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/api/adminApi.js",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/api/axiosClient.js",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/components/ImageUploader/ImageUploader.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/components/Layout/AdminLayout.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/context/AuthContext.js",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/index.css",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/index.js",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/AdminProfile.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Categories.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Courses.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Dashboard.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Enrollments.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Login.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Messages.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Reviews.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Students.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/theme.js",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/vite.config.js"
+    ],
+    "chat": [
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Messages.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/apis/message.api.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/message.controller.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/models/course.models/message.model.ts"
+    ],
+    "ecommerce": []
+  },
+  "dependencies": {
+    "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/package.json": {
+      "dependencies": {
+        "@ant-design/icons": "^5.3.0",
+        "antd": "^5.14.0",
+        "axios": "^1.6.7",
+        "dayjs": "^1.11.10",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-router-dom": "^6.22.0",
+        "recharts": "^2.12.0"
+      },
+      "devDependencies": {
+        "@vitejs/plugin-react": "^4.7.0",
+        "vite": "^6.4.2"
+      }
+    },
+    "/Users/vothanhtong/Mật /programming course website/Back-end/package.json": {
+      "dependencies": {
+        "@types/multer": "^2.1.0",
+        "bcryptjs": "^3.0.3",
+        "compression": "^1.8.1",
+        "cors": "^2.8.6",
+        "dotenv": "^16.6.1",
+        "express": "^5.2.1",
+        "express-rate-limit": "^8.5.0",
+        "helmet": "^8.1.0",
+        "jsonwebtoken": "^9.0.3",
+        "mongoose": "^8.23.1",
+        "morgan": "^1.10.1",
+        "multer": "^2.1.1",
+        "nodemailer": "6.9.16",
+        "winston": "^3.19.0"
+      },
+      "devDependencies": {
+        "@types/bcryptjs": "^2.4.6",
+        "@types/compression": "^1.8.1",
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.6",
+        "@types/jsonwebtoken": "^9.0.10",
+        "@types/morgan": "^1.9.10",
+        "@types/node": "^25.6.0",
+        "@types/nodemailer": "6.4.17",
+        "@vitest/coverage-v8": "2.1.9",
+        "nodemon": "^3.1.14",
+        "ts-node": "^10.9.2",
+        "typescript": "^6.0.3",
+        "vitest": "2.1.9"
+      }
+    },
+    "/Users/vothanhtong/Mật /programming course website/Front-end/package.json": {
+      "dependencies": {
+        "axios": "^1.6.7",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-router-dom": "^7.1.5"
+      },
+      "devDependencies": {
+        "@babel/core": "^7.23.0",
+        "@babel/plugin-proposal-class-properties": "^7.18.6",
+        "@babel/preset-env": "^7.23.0",
+        "@babel/preset-react": "^7.22.15",
+        "@babel/preset-typescript": "^7.28.5",
+        "@types/node": "^25.6.0",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "autoprefixer": "^10.5.0",
+        "babel-loader": "^9.1.3",
+        "clean-webpack-plugin": "^4.0.0",
+        "css-loader": "^6.8.1",
+        "dotenv-webpack": "^8.0.1",
+        "html-webpack-plugin": "^5.5.4",
+        "mini-css-extract-plugin": "^2.7.6",
+        "postcss": "^8.5.14",
+        "postcss-loader": "^8.2.1",
+        "style-loader": "^4.0.0",
+        "tailwindcss": "^3.4.19",
+        "typescript": "^6.0.3",
+        "webpack": "^5.106.2",
+        "webpack-cli": "^5.1.4",
+        "webpack-dev-server": "^4.15.2"
+      }
+    }
+  },
+  "metrics": {
+    "totalFiles": 124,
+    "components": 1,
+    "apis": 58,
+    "routes": 0,
+    "models": 9,
+    "middlewares": 4,
+    "socketEvents": 0,
+    "pages": 1
+  },
+  "findings": {
+    "todo": [],
+    "fixme": [],
+    "consoleLog": [
+      "/Users/vothanhtong/Mật /programming course website/Back-end/scripts/seedDatabase.js"
+    ],
+    "hardcodedSecrets": [
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/components/Layout/AdminLayout.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/AdminProfile.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Categories.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Courses.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Dashboard.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Enrollments.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Messages.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Reviews.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/src/pages/Students.jsx",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/auth.controller.test.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/course.controller.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/middlewares/adminAuth.middleware.test.ts",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/middlewares/studentAuth.middleware.test.ts",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/src/pages/Profile/ProfilePage.tsx"
+    ],
+    "apiKeys": [],
+    "tokens": [],
+    "passwords": [],
+    "envLeak": [
+      "/Users/vothanhtong/Mật /programming course website/Admin-dashboard/.env",
+      "/Users/vothanhtong/Mật /programming course website/Back-end/.env",
+      "/Users/vothanhtong/Mật /programming course website/Front-end/.env"
+    ],
+    "firebaseConfig": [],
+    "cloudinaryConfig": [],
+    "jwtSecret": [
+      "/Users/vothanhtong/Mật /programming course website/Back-end/src/controllers/auth.controller.test.ts"
+    ],
+    "adminRouteExposure": []
+  }
+}
