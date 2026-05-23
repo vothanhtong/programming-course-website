@@ -1,9 +1,13 @@
 import axios from 'axios';
 
-// Dùng relative URL để Vite proxy tự forward /apis → localhost:5001
-// Tránh CORS khi admin chạy ở port khác (3001, 3002...)
+// Dùng relative URL khi ở dev để Vite proxy tự forward /apis → localhost:5001
+// Khi build production (Vercel), sẽ dùng VITE_API_URL
+const BASE_URL = import.meta.env.PROD 
+  ? (import.meta.env.VITE_API_URL || '') 
+  : '';
+
 const axiosClient = axios.create({
-  baseURL: '',
+  baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 15000,
 });

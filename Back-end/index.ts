@@ -159,13 +159,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
   etag: true,
 }));
 
-// Production: serve frontend build
-if (isProd) {
-  app.use(express.static(path.join(__dirname, 'public')));
-  app.get('*', (_req: Request, res: Response) =>
-    res.sendFile(path.join(__dirname, 'public', 'index.html'))
-  );
-}
+
 
 // ── API Routes ────────────────────────────────────────────
 app.use('/apis/auth', authApi);
@@ -180,6 +174,14 @@ app.use('/apis/quizzes', quizApi);
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'OK', timestamp: new Date() });
 });
+
+// Production: serve frontend build
+if (isProd) {
+  app.use(express.static(path.join(__dirname, 'public')));
+  app.get('*', (_req: Request, res: Response) =>
+    res.sendFile(path.join(__dirname, 'public', 'index.html'))
+  );
+}
 
 
 // ── Global error handler ──────────────────────────────────

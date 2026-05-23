@@ -11,7 +11,7 @@ module.exports = (env, argv) => {
     entry: './src/index.tsx',
     output: {
       filename: isProd ? '[name].[contenthash].js' : '[name].js',
-      path: path.resolve(__dirname, '../firebase/public'),
+      path: path.resolve(__dirname, 'dist'),
       publicPath: '/',
       clean: true,
     },
