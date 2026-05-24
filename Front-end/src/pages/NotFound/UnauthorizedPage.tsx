@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Navbar from '../../components/Navbar/Navbar';
-import Footer from '../../components/Footer/Footer';
+import Navbar from '../../components/layout/Navbar/Navbar';
+import Footer from '../../components/layout/Footer/Footer';
 
 const UnauthorizedPage: React.FC = () => {
   const navigate = useNavigate();

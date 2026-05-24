@@ -7,7 +7,7 @@ import { adminAuthentication } from '../middlewares/adminAuth.middleware';
 import { studentAuthentication } from '../middlewares/studentAuth.middleware';
 import AdminModel from '../models/account.models/admin.model';
 import StudentModel from '../models/student.model';
-import logger from '../configs/logger';
+import logger from '../config/logger';
 import { getStudentId, getAdminId } from '../types';
 import { isValidId } from '../utils/validators';
 

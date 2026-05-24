@@ -1,199 +1,97 @@
-import { Request, Response } from 'express';
-import MessageModel from '../models/course.models/message.model';
-import StudentModel from '../models/student.model';
-import logger from '../configs/logger';
+import { Request, Response, NextFunction } from 'express';
 import { isValidId, getParam, sanitizeStr, EMAIL_REGEX } from '../utils/validators';
-import { invalidateAdminStatsCache } from '../utils/cache';
+import { messageService } from '../services/message.service';
 
 // ── PUBLIC ────────────────────────────────────────────────
 
-export const postMessage = async (req: Request, res: Response): Promise<void> => {
+export const postMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { name, email, phone, message } = req.body;
 
     if (!name?.trim() || !email?.trim() || !message?.trim()) {
-      res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin' });
-      return;
+      res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin' }); return;
     }
     if (!EMAIL_REGEX.test(email)) {
-      res.status(400).json({ message: 'Email không hợp lệ' });
-      return;
+      res.status(400).json({ message: 'Email không hợp lệ' }); return;
     }
 
     const safeName    = sanitizeStr(name, 100);
     const safeMessage = sanitizeStr(message, 2000);
 
     if (safeName.length < 2) {
-      res.status(400).json({ message: 'Tên phải có ít nhất 2 ký tự' });
-      return;
+      res.status(400).json({ message: 'Tên phải có ít nhất 2 ký tự' }); return;
     }
     if (safeMessage.length < 10) {
-      res.status(400).json({ message: 'Tin nhắn phải có ít nhất 10 ký tự' });
-      return;
+      res.status(400).json({ message: 'Tin nhắn phải có ít nhất 10 ký tự' }); return;
     }
 
-    await MessageModel.create({
-      name:    safeName,
-      email:   email.trim().toLowerCase(),
-      phone:   phone?.trim() || '',
-      message: safeMessage,
-    });
+    await messageService.postMessage({ safeName, email: email.trim().toLowerCase(), phone: phone?.trim(), safeMessage });
 
     res.status(201).json({ message: 'Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất.' });
-  } catch (err) {
-    logger.error('[postMessage]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+  } catch (err) { next(err); }
 };
 
 // ── PROTECTED: Student lấy lịch sử chat của chính mình ──
-export const getMessagesByEmail = async (req: Request, res: Response): Promise<void> => {
+export const getMessagesByEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // studentId đã được gắn bởi studentAuthentication middleware
     const studentId = (req as any).studentId as string | undefined;
     if (!studentId || !isValidId(studentId)) {
-      res.status(401).json({ message: 'Chưa đăng nhập' });
-      return;
+      res.status(401).json({ message: 'Chưa đăng nhập' }); return;
     }
 
-    // Lấy email từ tài khoản — không tin vào query param để tránh IDOR
-    const student = await StudentModel.findById(studentId).select('email').lean();
-    if (!student) {
-      res.status(404).json({ message: 'Không tìm thấy tài khoản' });
-      return;
-    }
-
-    // ⚡ OPTIMIZATION: Cursor-based pagination
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20));
-    const cursor = req.query.cursor as string | undefined;
-
-    const filter: Record<string, unknown> = { email: student.email };
-    
-    // If cursor provided, fetch messages older than cursor
-    if (cursor && isValidId(cursor)) {
-      const cursorMessage = await MessageModel.findById(cursor).select('createdAt').lean();
-      if (cursorMessage) {
-        filter.createdAt = { $lt: cursorMessage.createdAt };
-      }
-    }
-
-    const messages = await MessageModel.find(filter)
-      .select('name message adminReply repliedAt isRead createdAt')
-      .sort({ createdAt: -1 })
-      .limit(limit + 1) // Fetch one extra to check if there are more
-      .lean();
-
-    // Check if there are more messages
-    const hasMore = messages.length > limit;
-    const resultMessages = hasMore ? messages.slice(0, limit) : messages;
-    const nextCursor = hasMore && resultMessages.length > 0 
-      ? resultMessages[resultMessages.length - 1]._id.toString() 
-      : null;
-
-    res.json({ 
-      messages: resultMessages,
-      hasMore,
-      nextCursor,
-      total: resultMessages.length,
-    });
-  } catch (err) {
-    logger.error('[getMessagesByEmail]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+    const result = await messageService.getMessagesByEmail(studentId, req.query);
+    res.json(result);
+  } catch (err) { next(err); }
 };
 
 // ── ADMIN ─────────────────────────────────────────────────
 
-export const adminGetMessages = async (req: Request, res: Response): Promise<void> => {
+export const adminGetMessages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const page    = Math.max(1, parseInt(req.query.page as string) || 1);
-    const perPage = Math.min(100, Math.max(1, parseInt(req.query.perPage as string) || 20));
-    const { isRead } = req.query as { isRead?: string };
-
-    const filter: Record<string, unknown> = {};
-    if (isRead !== undefined) filter.isRead = isRead === 'true';
-
-    const [total, messages] = await Promise.all([
-      MessageModel.countDocuments(filter),
-      MessageModel.find(filter)
-        .sort({ createdAt: -1 })
-        .skip((page - 1) * perPage)
-        .limit(perPage)
-        .lean(),
-    ]);
-
-    res.json({ messages, total, page, perPage });
-  } catch (err) {
-    logger.error('[adminGetMessages]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+    const result = await messageService.adminGetMessages(req.query);
+    res.json(result);
+  } catch (err) { next(err); }
 };
 
-export const adminMarkRead = async (req: Request, res: Response): Promise<void> => {
+export const adminMarkRead = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = getParam(req.params.id);
     if (!isValidId(id)) { res.status(400).json({ message: 'ID không hợp lệ' }); return; }
 
-    const message = await MessageModel.findByIdAndUpdate(id, { isRead: true }, { new: true });
-    if (!message) { res.status(404).json({ message: 'Không tìm thấy tin nhắn' }); return; }
-
-    // ⚡ Invalidate stats cache (unread count changed)
-    invalidateAdminStatsCache();
-
-    res.json({ message: 'Đã đánh dấu đã đọc', data: message });
-  } catch (err) {
-    logger.error('[adminMarkRead]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+    const data = await messageService.adminMarkRead(id);
+    res.json({ message: 'Đã đánh dấu đã đọc', data });
+  } catch (err) { next(err); }
 };
 
-// Admin trả lời tin nhắn
-export const adminReplyMessage = async (req: Request, res: Response): Promise<void> => {
+export const adminReplyMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = getParam(req.params.id);
     if (!isValidId(id)) { res.status(400).json({ message: 'ID không hợp lệ' }); return; }
 
-    const { reply } = req.body as { reply: string };
+    const { reply } = req.body;
     if (!reply?.trim()) { res.status(400).json({ message: 'Nội dung trả lời không được để trống' }); return; }
 
     const safeReply = sanitizeStr(reply, 2000);
     if (safeReply.length < 2) { res.status(400).json({ message: 'Nội dung trả lời quá ngắn' }); return; }
 
-    const message = await MessageModel.findByIdAndUpdate(
-      id,
-      { adminReply: safeReply, repliedAt: new Date(), isRead: true },
-      { new: true }
-    );
-    if (!message) { res.status(404).json({ message: 'Không tìm thấy tin nhắn' }); return; }
-
-    res.json({ message: 'Đã gửi trả lời', data: message });
-  } catch (err) {
-    logger.error('[adminReplyMessage]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+    const data = await messageService.adminReplyMessage(id, safeReply);
+    res.json({ message: 'Đã gửi trả lời', data });
+  } catch (err) { next(err); }
 };
 
-export const adminDeleteMessage = async (req: Request, res: Response): Promise<void> => {
+export const adminDeleteMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = getParam(req.params.id);
     if (!isValidId(id)) { res.status(400).json({ message: 'ID không hợp lệ' }); return; }
 
-    const message = await MessageModel.findByIdAndDelete(id);
-    if (!message) { res.status(404).json({ message: 'Không tìm thấy tin nhắn' }); return; }
-
+    await messageService.adminDeleteMessage(id);
     res.json({ message: 'Đã xóa tin nhắn' });
-  } catch (err) {
-    logger.error('[adminDeleteMessage]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+  } catch (err) { next(err); }
 };
 
-export const adminUnreadCount = async (_req: Request, res: Response): Promise<void> => {
+export const adminUnreadCount = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const count = await MessageModel.countDocuments({ isRead: false });
+    const count = await messageService.adminUnreadCount();
     res.json({ count });
-  } catch (err) {
-    logger.error('[adminUnreadCount]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+  } catch (err) { next(err); }
 };

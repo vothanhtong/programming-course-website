@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { STORAGE_KEYS } from '../constants/storageKeys';
 
 // Dùng relative URL để webpack proxy tự forward /apis → localhost:5001
 // Tránh CORS và network error khi gọi trực tiếp cross-origin
@@ -14,7 +15,7 @@ const axiosClient = axios.create({
 
 // Attach student token on every request
 axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('student_token');
+  const token = localStorage.getItem(STORAGE_KEYS.STUDENT_TOKEN);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -41,7 +42,7 @@ axiosClient.interceptors.response.use(
     // Automatically redirect to login on unauthorized access
     if (error.response.status === 401) {
       // Clear invalid token
-      localStorage.removeItem('student_token');
+      localStorage.removeItem(STORAGE_KEYS.STUDENT_TOKEN);
       
       // Redirect to login with return URL
       const currentPath = window.location.pathname;

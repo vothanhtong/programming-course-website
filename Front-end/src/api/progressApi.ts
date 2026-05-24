@@ -1,4 +1,5 @@
 import axiosClient from './axiosClient';
+import { API_ROUTES } from '../constants/apiRoutes';
 
 interface LessonProgress {
   lessonId: string;
@@ -32,33 +33,28 @@ interface LearningStats {
 }
 
 const progressApi = {
-  // Get my enrolled courses
   getMyEnrolledCourses: (): Promise<{ courses: any[] }> =>
-    axiosClient.get('/apis/progress/my-courses'),
+    axiosClient.get(API_ROUTES.PROGRESS.MY_COURSES),
 
-  // Get course progress
   getCourseProgress: (courseId: string): Promise<{ progress: CourseProgress }> =>
-    axiosClient.get(`/apis/progress/course/${courseId}`),
+    axiosClient.get(`${API_ROUTES.PROGRESS.COURSE_BASE}/${courseId}`),
 
-  // Update lesson progress
   updateLessonProgress: (
     courseId: string,
     lessonId: string,
     data: { watchedSeconds?: number; completed?: boolean }
   ): Promise<{ message: string; progress: any }> =>
-    axiosClient.put(`/apis/progress/course/${courseId}/lesson/${lessonId}`, data),
+    axiosClient.put(`${API_ROUTES.PROGRESS.COURSE_BASE}/${courseId}/lesson/${lessonId}`, data),
 
-  // Get learning stats
   getLearningStats: (): Promise<{ stats: LearningStats }> =>
-    axiosClient.get('/apis/progress/stats'),
+    axiosClient.get(API_ROUTES.PROGRESS.STATS),
 
-  // Admin: Get student progress in course
   adminGetStudentProgress: (
     courseId: string,
     page?: number,
     perPage?: number
   ): Promise<{ progressRecords: any[]; total: number; page: number; perPage: number }> =>
-    axiosClient.get(`/apis/progress/admin/course/${courseId}`, { params: { page, perPage } }),
+    axiosClient.get(`${API_ROUTES.PROGRESS.ADMIN_COURSE}/${courseId}`, { params: { page, perPage } }),
 };
 
 export default progressApi;

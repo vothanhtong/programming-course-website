@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar/Navbar';
-import Footer from '../../components/Footer/Footer';
-import StatCardSkeleton from '../../components/Skeleton/StatCardSkeleton';
+import Navbar from '../../components/layout/Navbar/Navbar';
+import Footer from '../../components/layout/Footer/Footer';
+import StatCardSkeleton from '../../components/common/Skeleton/StatCardSkeleton';
 import progressApi from '../../api/progressApi';
 import { useAuth } from '../../context/AuthContext';
 import type { LearningStats } from '../../api/progressApi';

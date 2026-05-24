@@ -1,61 +1,23 @@
-import { Request, Response } from 'express';
-import crypto from 'crypto';
-import mongoose from 'mongoose';
-import AdminModel from '../models/account.models/admin.model';
-import StudentModel from '../models/student.model';
-import CourseModel from '../models/course.models/course.model';
-import EnrollmentModel from '../models/course.models/enrollment.model';
-import ProgressModel from '../models/course.models/progress.model';
-import { encodedToken, signAdminToken } from '../configs/jwt.config';
-import { sendMail, newStudentAccountTemplate } from '../utils/mailer';
-import logger from '../configs/logger';
+import { Request, Response, NextFunction } from 'express';
 import { getAdminId } from '../types';
-import {
-  EMAIL_REGEX, isValidId, getParam, sanitizeStr, isValidAvatarUrl, escapeRegex,
-} from '../utils/validators';
-import { memoryCache } from '../utils/cache';
+import { EMAIL_REGEX, isValidId, getParam, isValidAvatarUrl, sanitizeStr } from '../utils/validators';
+import { adminService } from '../services/admin.service';
+import { studentService } from '../services/student.service';
 
 const isProd = process.env.NODE_ENV === 'production';
 
 // ── AUTH ──────────────────────────────────────────────────
 
-export const postLogin = async (req: Request, res: Response): Promise<void> => {
+export const postLogin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { userName, password } = req.body as { userName: string; password: string };
-
+    const { userName, password } = req.body;
     if (!userName?.trim() || !password) {
       res.status(400).json({ message: 'Vui lòng nhập tài khoản và mật khẩu' }); return;
     }
 
-    const adminUser = await AdminModel.findOne({ userName: userName.trim() });
-    // Timing-safe: không tiết lộ tài khoản có tồn tại hay không
-    if (!adminUser) {
-      res.status(401).json({ message: 'Tài khoản hoặc mật khẩu không đúng' }); return;
-    }
-
-    const isMatch = await adminUser.comparePassword(password);
-    if (!isMatch) {
-      res.status(401).json({ message: 'Tài khoản hoặc mật khẩu không đúng' }); return;
-    }
-
-    const token = signAdminToken(adminUser._id.toString());
-
-    res.json({
-      token,
-      admin: {
-        id:       adminUser._id,
-        userName: adminUser.userName,
-        fullName: adminUser.fullName,
-        email:    adminUser.email,
-        phone:    adminUser.phone,
-        avatar:   adminUser.avatar,
-        fb:       adminUser.fb,
-      },
-    });
-  } catch (err) {
-    logger.error('[postLogin]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+    const result = await adminService.login({ userName: userName.trim(), password });
+    res.json(result);
+  } catch (err) { next(err); }
 };
 
 export const postLogout = (_req: Request, res: Response): void => {
@@ -65,23 +27,16 @@ export const postLogout = (_req: Request, res: Response): void => {
 
 // ── ADMIN PROFILE ─────────────────────────────────────────
 
-export const getAdminProfile = async (req: Request, res: Response): Promise<void> => {
+export const getAdminProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const admin = await AdminModel.findById(getAdminId(req)).select('-password');
-    if (!admin) { res.status(404).json({ message: 'Không tìm thấy admin' }); return; }
+    const admin = await adminService.getAdminProfile(getAdminId(req));
     res.json({ admin });
-  } catch (err) {
-    logger.error('[getAdminProfile]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+  } catch (err) { next(err); }
 };
 
-export const updateAdminProfile = async (req: Request, res: Response): Promise<void> => {
+export const updateAdminProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { fullName, email, phone, fb, address, avatar } = req.body as {
-      fullName?: string; email?: string; phone?: string;
-      fb?: string; address?: string; avatar?: string;
-    };
+    const { fullName, email, phone, fb, address, avatar } = req.body;
 
     if (avatar !== undefined && !isValidAvatarUrl(avatar)) {
       res.status(400).json({ message: 'URL ảnh đại diện không hợp lệ' }); return;
@@ -98,21 +53,14 @@ export const updateAdminProfile = async (req: Request, res: Response): Promise<v
     if (address !== undefined) update.address = sanitizeStr(address, 200);
     if (avatar !== undefined)  update.avatar  = sanitizeStr(avatar, 500);
 
-    const admin = await AdminModel.findByIdAndUpdate(getAdminId(req), update, { new: true }).select('-password');
-    if (!admin) { res.status(404).json({ message: 'Không tìm thấy admin' }); return; }
+    const admin = await adminService.updateAdminProfile(getAdminId(req), update);
     res.json({ message: 'Cập nhật thành công', admin });
-  } catch (err) {
-    logger.error('[updateAdminProfile]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+  } catch (err) { next(err); }
 };
 
-export const changeAdminPassword = async (req: Request, res: Response): Promise<void> => {
+export const changeAdminPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { currentPassword, newPassword } = req.body as {
-      currentPassword: string; newPassword: string;
-    };
-
+    const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) {
       res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin' }); return;
     }
@@ -120,95 +68,33 @@ export const changeAdminPassword = async (req: Request, res: Response): Promise<
       res.status(400).json({ message: 'Mật khẩu mới phải từ 6 đến 128 ký tự' }); return;
     }
 
-    const admin = await AdminModel.findById(getAdminId(req));
-    if (!admin) { res.status(404).json({ message: 'Không tìm thấy admin' }); return; }
-
-    const isMatch = await admin.comparePassword(currentPassword);
-    if (!isMatch) { res.status(401).json({ message: 'Mật khẩu hiện tại không đúng' }); return; }
-
-    admin.password = newPassword; // pre-save hook trong model sẽ tự hash
-    await admin.save();
+    await adminService.changeAdminPassword(getAdminId(req), { currentPassword, newPassword });
     res.json({ message: 'Đổi mật khẩu thành công' });
-  } catch (err) {
-    logger.error('[changeAdminPassword]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+  } catch (err) { next(err); }
 };
 
 // ── STUDENT MANAGEMENT ────────────────────────────────────
 
-export const adminGetStudents = async (req: Request, res: Response): Promise<void> => {
+export const adminGetStudents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const page    = Math.max(1, parseInt(req.query.page as string) || 1);
-    const perPage = Math.min(50, Math.max(1, parseInt(req.query.perPage as string) || 20));
-    const search  = sanitizeStr(req.query.search as string, 100);
-
-    const filter: Record<string, unknown> = {};
-    if (search) {
-      const safe = escapeRegex(search);
-      filter.$or = [
-        { fullName: { $regex: safe, $options: 'i' } },
-        { email:    { $regex: safe, $options: 'i' } },
-        { phone:    { $regex: safe, $options: 'i' } },
-      ];
-    }
-
-    const [total, students] = await Promise.all([
-      StudentModel.countDocuments(filter),
-      StudentModel.find(filter)
-        .select('-password -verifyToken -resetToken -verifyTokenExpiry -resetTokenExpiry')
-        // ⚡ OPTIMIZATION: Removed .populate() from list view
-        // Only show enrolledCoursesCount instead of full course objects
-        // This reduces query time by ~70% and payload size by ~80%
-        .sort({ createdAt: -1 })
-        .skip((page - 1) * perPage).limit(perPage).lean(),
-    ]);
-
-    // Add enrolledCoursesCount to each student
-    const studentsWithCount = students.map((student: any) => ({
-      ...student,
-      enrolledCoursesCount: student.enrolledCourses?.length || 0,
-    }));
-
-    res.json({ students: studentsWithCount, total, page, perPage });
-  } catch (err) {
-    logger.error('[adminGetStudents]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+    const result = await studentService.adminGetStudents(req.query);
+    res.json(result);
+  } catch (err) { next(err); }
 };
 
-export const adminGetStudentDetail = async (req: Request, res: Response): Promise<void> => {
+export const adminGetStudentDetail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = getParam(req.params.id);
     if (!isValidId(id)) { res.status(400).json({ message: 'ID không hợp lệ' }); return; }
 
-    const student = await StudentModel.findById(id)
-      .select('-password -verifyToken -resetToken -verifyTokenExpiry -resetTokenExpiry')
-      .populate('enrolledCourses', 'title slug thumbnail price')
-      .lean();
-
-    if (!student) { res.status(404).json({ message: 'Không tìm thấy học viên' }); return; }
-
-    const studentEnrollments = await EnrollmentModel.find({ studentEmail: student.email })
-      .populate('courseId', 'title slug')
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .lean();
-
-    res.json({ student, enrollments: studentEnrollments });
-  } catch (err) {
-    logger.error('[adminGetStudentDetail]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+    const result = await studentService.adminGetStudentDetail(id);
+    res.json(result);
+  } catch (err) { next(err); }
 };
 
-export const adminCreateStudent = async (req: Request, res: Response): Promise<void> => {
+export const adminCreateStudent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { fullName, email, phone, courseIds, sendEmail } = req.body as {
-      fullName: string; email: string; phone?: string;
-      courseIds?: string[]; sendEmail?: boolean;
-    };
-
+    const { fullName, email, phone, courseIds, sendEmail } = req.body;
     if (!fullName?.trim() || !email?.trim()) {
       res.status(400).json({ message: 'Vui lòng nhập họ tên và email' }); return;
     }
@@ -219,79 +105,28 @@ export const adminCreateStudent = async (req: Request, res: Response): Promise<v
       res.status(400).json({ message: 'Họ tên quá dài' }); return;
     }
 
-    const exists = await StudentModel.findOne({ email: email.toLowerCase() }).lean();
-    if (exists) { res.status(409).json({ message: 'Email đã được đăng ký' }); return; }
+    const validCourseIds = (courseIds || []).filter((id: string) => isValidId(id));
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
 
-    const rawPassword = crypto.randomBytes(5).toString('hex'); // 10 chars hex
-    const validCourseIds = (courseIds || []).filter(id => isValidId(id));
-
-    const student = await StudentModel.create({
-      fullName:        sanitizeStr(fullName, 100),
-      email:           email.toLowerCase().trim(),
-      password:        rawPassword,
-      phone:           sanitizeStr(phone || '', 20),
-      isVerified:      true,
-      enrolledCourses: validCourseIds,
-    });
-
-    // Tạo Enrollment record cho từng khóa học được cấp ngay lúc tạo tài khoản
-    if (validCourseIds.length > 0) {
-      const courses = await CourseModel.find({ _id: { $in: validCourseIds } })
-        .select('title price salePrice isFree').lean();
-      const enrollmentDocs = courses.map(c => ({
-        courseId:      c._id,
-        studentName:   student.fullName,
-        studentEmail:  student.email,
-        studentPhone:  sanitizeStr(phone || '', 20),
-        paymentMethod: 'granted',
-        amount:        0,
-        paymentStatus: 'paid',
-        note:          'Được cấp bởi admin',
-      }));
-      await EnrollmentModel.insertMany(enrollmentDocs, { ordered: false });
-      // Cập nhật enrollmentCount cho từng course
-      await CourseModel.updateMany(
-        { _id: { $in: validCourseIds } },
-        { $inc: { enrollmentCount: 1 } }
-      );
-    }
-
-    if (sendEmail !== false) {
-      const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/login`;
-      let courseName: string | undefined;
-      if (validCourseIds.length) {
-        const course = await CourseModel.findById(validCourseIds[0]).select('title').lean();
-        courseName = course?.title;
-      }
-      await sendMail({
-        to:      student.email,
-        subject: '🎓 Tài khoản học tập Khóa Lập Trình của bạn',
-        html:    newStudentAccountTemplate(student.fullName, student.email, rawPassword, loginUrl, courseName),
-      });
-    }
+    const result = await studentService.adminCreateStudent(
+      { fullName: sanitizeStr(fullName, 100), email: email.toLowerCase().trim(), phone: sanitizeStr(phone || '', 20), validCourseIds, sendEmail },
+      frontendUrl,
+      isProd
+    );
 
     res.status(201).json({
       message: 'Tạo tài khoản thành công' + (sendEmail !== false ? ' và đã gửi email' : ''),
-      student: { id: student._id, fullName: student.fullName, email: student.email },
-      // Chỉ trả tempPassword trong môi trường dev hoặc khi không gửi email
-      ...((!isProd || sendEmail === false) && { tempPassword: rawPassword }),
+      ...result
     });
-  } catch (err) {
-    logger.error('[adminCreateStudent]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+  } catch (err) { next(err); }
 };
 
-export const adminUpdateStudent = async (req: Request, res: Response): Promise<void> => {
+export const adminUpdateStudent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = getParam(req.params.id);
     if (!isValidId(id)) { res.status(400).json({ message: 'ID không hợp lệ' }); return; }
 
-    const { fullName, phone, bio, avatar, isVerified } = req.body as {
-      fullName?: string; phone?: string; bio?: string;
-      avatar?: string; isVerified?: boolean;
-    };
-
+    const { fullName, phone, bio, avatar, isVerified } = req.body;
     if (avatar !== undefined && !isValidAvatarUrl(avatar)) {
       res.status(400).json({ message: 'URL ảnh đại diện không hợp lệ' }); return;
     }
@@ -303,61 +138,37 @@ export const adminUpdateStudent = async (req: Request, res: Response): Promise<v
     if (avatar !== undefined)    update.avatar     = sanitizeStr(avatar, 500);
     if (isVerified !== undefined) update.isVerified = Boolean(isVerified);
 
-    const student = await StudentModel.findByIdAndUpdate(id, update, { new: true })
-      .select('-password -verifyToken -resetToken -verifyTokenExpiry -resetTokenExpiry');
-    if (!student) { res.status(404).json({ message: 'Không tìm thấy học viên' }); return; }
+    const student = await studentService.adminUpdateStudent(id, update);
     res.json({ message: 'Cập nhật thành công', student });
-  } catch (err) {
-    logger.error('[adminUpdateStudent]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+  } catch (err) { next(err); }
 };
 
-export const adminResetStudentPassword = async (req: Request, res: Response): Promise<void> => {
+export const adminResetStudentPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = getParam(req.params.id);
     if (!isValidId(id)) { res.status(400).json({ message: 'ID không hợp lệ' }); return; }
 
-    const { newPassword, sendEmail: doSendEmail } = req.body as {
-      newPassword?: string; sendEmail?: boolean;
-    };
-
-    const student = await StudentModel.findById(id);
-    if (!student) { res.status(404).json({ message: 'Không tìm thấy học viên' }); return; }
-
-    const rawPassword = newPassword?.trim() || crypto.randomBytes(5).toString('hex');
-    if (rawPassword.length < 6 || rawPassword.length > 128) {
+    const { newPassword, sendEmail } = req.body;
+    if (newPassword && (newPassword.length < 6 || newPassword.length > 128)) {
       res.status(400).json({ message: 'Mật khẩu phải từ 6 đến 128 ký tự' }); return;
     }
 
-    student.password = rawPassword;
-    await student.save();
-
-    if (doSendEmail !== false) {
-      const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/login`;
-      await sendMail({
-        to:      student.email,
-        subject: '🔑 Mật khẩu mới - Khóa Lập Trình',
-        html:    newStudentAccountTemplate(student.fullName, student.email, rawPassword, loginUrl),
-      });
-    }
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+    const result = await studentService.adminResetStudentPassword(id, { newPassword, sendEmail }, frontendUrl, isProd);
 
     res.json({
       message: 'Đặt lại mật khẩu thành công',
-      ...((!isProd || doSendEmail === false) && { tempPassword: rawPassword }),
+      ...result
     });
-  } catch (err) {
-    logger.error('[adminResetStudentPassword]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+  } catch (err) { next(err); }
 };
 
-export const adminGrantCourses = async (req: Request, res: Response): Promise<void> => {
+export const adminGrantCourses = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = getParam(req.params.id);
     if (!isValidId(id)) { res.status(400).json({ message: 'ID không hợp lệ' }); return; }
 
-    const { courseIds } = req.body as { courseIds: string[] };
+    const { courseIds } = req.body;
     if (!Array.isArray(courseIds) || courseIds.length === 0) {
       res.status(400).json({ message: 'Vui lòng chọn ít nhất 1 khóa học' }); return;
     }
@@ -367,117 +178,30 @@ export const adminGrantCourses = async (req: Request, res: Response): Promise<vo
       res.status(400).json({ message: 'Không có courseId hợp lệ' }); return;
     }
 
-    const student = await StudentModel.findByIdAndUpdate(
-      id,
-      { $addToSet: { enrolledCourses: { $each: validIds } } },
-      { new: true }
-    ).select('-password').populate('enrolledCourses', 'title slug thumbnail');
-
-    if (!student) { res.status(404).json({ message: 'Không tìm thấy học viên' }); return; }
-
-    // Tạo Enrollment record cho các khóa học chưa có (nhất quán với adminCreateStudent)
-    const enrollmentDocs = validIds.map(cid => ({
-      courseId:      cid,
-      studentName:   student.fullName,
-      studentEmail:  student.email,
-      studentPhone:  student.phone || '',
-      paymentMethod: 'granted',
-      amount:        0,
-      paymentStatus: 'paid',
-      note:          'Được cấp bởi admin',
-    }));
-    await EnrollmentModel.insertMany(enrollmentDocs, { ordered: false });
-    await CourseModel.updateMany(
-      { _id: { $in: validIds } },
-      { $inc: { enrollmentCount: 1 } }
-    );
-
+    const student = await studentService.adminGrantCourses(id, validIds);
     res.json({ message: `Đã cấp ${validIds.length} khóa học`, student });
-  } catch (err) {
-    logger.error('[adminGrantCourses]', err);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
+  } catch (err) { next(err); }
 };
 
-export const adminRevokeCourse = async (req: Request, res: Response): Promise<void> => {
-  const session = await mongoose.startSession();
+export const adminRevokeCourse = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const id       = getParam(req.params.id);
+    const id = getParam(req.params.id);
     const courseId = getParam(req.params.courseId);
     if (!isValidId(id) || !isValidId(courseId)) {
       res.status(400).json({ message: 'ID không hợp lệ' }); return;
     }
 
-    await session.withTransaction(async () => {
-      // 1. Lấy student để có email (cần cho EnrollmentModel lookup)
-      const student = await StudentModel.findById(id).select('email enrolledCourses').session(session).lean();
-      if (!student) throw Object.assign(new Error('Không tìm thấy học viên'), { status: 404 });
-
-      // 2. Pull khóa học khỏi enrolledCourses
-      await StudentModel.updateOne(
-        { _id: id },
-        { $pull: { enrolledCourses: new mongoose.Types.ObjectId(courseId) } },
-        { session }
-      );
-
-      // 3. Xóa Enrollment record (chỉ xóa paid/granted — không xóa pending để giữ lịch sử)
-      const deletedEnrollment = await EnrollmentModel.findOneAndDelete(
-        { courseId, studentEmail: student.email, paymentStatus: { $in: ['paid', 'granted'] } },
-        { session }
-      );
-
-      // 4. Giảm enrollmentCount nếu có enrollment bị xóa
-      if (deletedEnrollment) {
-        await CourseModel.updateOne(
-          { _id: courseId },
-          { $inc: { enrollmentCount: -1 } },
-          { session }
-        );
-      }
-
-      // 5. Xóa Progress record
-      await ProgressModel.deleteOne({ studentId: id, courseId }, { session });
-    });
-
-    // Trả về student đã cập nhật (sau transaction)
-    const updatedStudent = await StudentModel.findById(id)
-      .select('-password')
-      .populate('enrolledCourses', 'title slug thumbnail');
-
-    if (!updatedStudent) { res.status(404).json({ message: 'Không tìm thấy học viên' }); return; }
-    res.json({ message: 'Đã thu hồi khóa học', student: updatedStudent });
-  } catch (err: any) {
-    logger.error('[adminRevokeCourse]', err);
-    if (err.status === 404) { res.status(404).json({ message: err.message }); return; }
-    res.status(500).json({ message: 'Lỗi server' });
-  } finally {
-    await session.endSession();
-  }
+    const student = await studentService.adminRevokeCourse(id, courseId);
+    res.json({ message: 'Đã thu hồi khóa học', student });
+  } catch (err) { next(err); }
 };
 
-export const adminDeleteStudent = async (req: Request, res: Response): Promise<void> => {
-  const session = await mongoose.startSession();
+export const adminDeleteStudent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = getParam(req.params.id);
     if (!isValidId(id)) { res.status(400).json({ message: 'ID không hợp lệ' }); return; }
 
-    await session.withTransaction(async () => {
-      const student = await StudentModel.findByIdAndDelete(id, { session });
-      if (!student) throw Object.assign(new Error('Không tìm thấy học viên'), { status: 404 });
-
-      // Xóa tất cả dữ liệu liên quan — tránh orphaned documents
-      await Promise.all([
-        EnrollmentModel.deleteMany({ studentEmail: student.email }, { session }),
-        ProgressModel.deleteMany({ studentId: id }, { session }),
-      ]);
-    });
-
+    await studentService.adminDeleteStudent(id);
     res.json({ message: 'Đã xóa học viên' });
-  } catch (err: any) {
-    logger.error('[adminDeleteStudent]', err);
-    if (err.status === 404) { res.status(404).json({ message: err.message }); return; }
-    res.status(500).json({ message: 'Lỗi server' });
-  } finally {
-    await session.endSession();
-  }
+  } catch (err) { next(err); }
 };

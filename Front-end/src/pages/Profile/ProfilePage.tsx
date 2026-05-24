@@ -2,10 +2,10 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import authApi from '../../api/authApi';
-import axiosClient from '../../api/axiosClient';
-import ImageUploader from '../../components/ImageUploader/ImageUploader';
-import Navbar from '../../components/Navbar/Navbar';
-import Footer from '../../components/Footer/Footer';
+import { messageService } from '../../services/messageService';
+import ImageUploader from '../../components/ui/ImageUploader/ImageUploader';
+import Navbar from '../../components/layout/Navbar/Navbar';
+import Footer from '../../components/layout/Footer/Footer';
 
 type Tab = 'profile' | 'courses' | 'messages' | 'password';
 
@@ -164,7 +164,7 @@ const ProfilePage: React.FC = () => {
     if (!newMsg.trim() || !student) return;
     setSendingMsg(true); setMsgError(''); setMsgSentOk('');
     try {
-      await axiosClient.post('/apis/messages', {
+      await messageService.sendMessage({
         name:    student.fullName,
         email:   student.email,
         phone:   student.phone || '',

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import authApi, { Student } from '../api/authApi';
+import { STORAGE_KEYS } from '../constants/storageKeys';
 
 interface AuthContextType {
   student: Student | null;
@@ -17,28 +18,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('student_token');
+    const token = localStorage.getItem(STORAGE_KEYS.STUDENT_TOKEN);
     if (!token) { setLoading(false); return; }
     authApi.getMe()
       .then(res => setStudent(res.student))
-      .catch(() => localStorage.removeItem('student_token'))
+      .catch(() => localStorage.removeItem(STORAGE_KEYS.STUDENT_TOKEN))
       .finally(() => setLoading(false));
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await authApi.login({ email, password });
-    localStorage.setItem('student_token', res.token);
+    localStorage.setItem(STORAGE_KEYS.STUDENT_TOKEN, res.token);
     setStudent(res.student);
   }, []);
 
   const register = useCallback(async (fullName: string, email: string, password: string) => {
     const res = await authApi.register({ fullName, email, password });
-    localStorage.setItem('student_token', res.token);
+    localStorage.setItem(STORAGE_KEYS.STUDENT_TOKEN, res.token);
     setStudent(res.student);
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('student_token');
+    localStorage.removeItem(STORAGE_KEYS.STUDENT_TOKEN);
     setStudent(null);
   }, []);
 

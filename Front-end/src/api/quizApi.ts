@@ -1,17 +1,18 @@
 import axiosClient from './axiosClient';
+import { API_ROUTES } from '../constants/apiRoutes';
 
 const quizApi = {
   getCourseQuizzes: (courseId: string): Promise<{ quizzes: any[] }> =>
-    axiosClient.get(`/apis/quizzes/course/${courseId}`),
+    axiosClient.get(`${API_ROUTES.QUIZZES.COURSE}/${courseId}`),
 
-  getQuizHistory: (courseId: string): Promise<{ history: any[] }> =>
-    axiosClient.get('/apis/quizzes/history', { params: { courseId } }),
+  getStudentQuizHistory: (courseId?: string): Promise<{ history: any[] }> =>
+    axiosClient.get(API_ROUTES.QUIZZES.HISTORY, { params: { courseId } }),
 
-  getQuizDetail: (quizId: string): Promise<{ quiz: any }> =>
-    axiosClient.get(`/apis/quizzes/${quizId}`),
+  getQuizForStudent: (quizId: string): Promise<{ quiz: any }> =>
+    axiosClient.get(`${API_ROUTES.QUIZZES.BASE}/${quizId}`),
 
-  submitQuiz: (quizId: string, answers: number[]): Promise<{ message: string; result: any; quizReview: any }> =>
-    axiosClient.post(`/apis/quizzes/${quizId}/submit`, { answers }),
+  submitQuiz: (quizId: string, answers: number[]): Promise<any> =>
+    axiosClient.post(`${API_ROUTES.QUIZZES.BASE}/${quizId}/submit`, { answers }),
 };
 
 export default quizApi;

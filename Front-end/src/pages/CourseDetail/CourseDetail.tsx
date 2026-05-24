@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import courseApi from '../../api/courseApi';
 import type { Course, Lesson, Review, ReviewFormData } from '../../types';
-import EnrollModal from '../../components/EnrollModal/EnrollModal';
-import CourseDetailSkeleton from '../../components/Skeleton/CourseDetailSkeleton';
+import EnrollModal from '../../components/ui/EnrollModal/EnrollModal';
+import CourseDetailSkeleton from '../../components/common/Skeleton/CourseDetailSkeleton';
 import NotFoundPage from '../NotFound/NotFoundPage';
-import Navbar from '../../components/Navbar/Navbar';
-import Footer from '../../components/Footer/Footer';
-import QuizTab from '../../components/Quiz/QuizTab';
+import Navbar from '../../components/layout/Navbar/Navbar';
+import Footer from '../../components/layout/Footer/Footer';
+import QuizTab from '../../components/ui/Quiz/QuizTab';
 
 const levelMap: Record<string, string> = {
   beginner: 'Cơ bản', intermediate: 'Trung cấp', advanced: 'Nâng cao',

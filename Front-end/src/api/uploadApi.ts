@@ -1,36 +1,33 @@
 import axiosClient from './axiosClient';
+import { API_ROUTES } from '../constants/apiRoutes';
 
 const uploadApi = {
-  // Admin: Upload course image
-  uploadCourseImage: (file: File): Promise<{ url: string; filename: string }> => {
+  uploadImage: (file: File): Promise<{ url: string }> => {
     const formData = new FormData();
     formData.append('image', file);
-    return axiosClient.post('/apis/upload/image', formData, {
+    return axiosClient.post(API_ROUTES.UPLOAD.IMAGE, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
 
-  // Admin: Delete uploaded image
   deleteImage: (filename: string): Promise<{ message: string }> =>
-    axiosClient.delete(`/apis/upload/image/${filename}`),
+    axiosClient.delete(`${API_ROUTES.UPLOAD.IMAGE}/${filename}`),
 
-  // Student: Upload avatar
-  uploadStudentAvatar: (file: File): Promise<{ url: string; message: string }> => {
+  uploadStudentAvatar: (file: File): Promise<{ url: string }> => {
     const formData = new FormData();
-    formData.append('avatar', file);
-    return axiosClient.post('/apis/upload/student-avatar', formData, {
+    formData.append('image', file);
+    return axiosClient.post(API_ROUTES.UPLOAD.STUDENT_AVATAR, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
 
-  // Admin: Upload avatar
-  uploadAdminAvatar: (file: File): Promise<{ url: string; message: string }> => {
+  uploadAdminAvatar: (file: File): Promise<{ url: string }> => {
     const formData = new FormData();
-    formData.append('avatar', file);
-    return axiosClient.post('/apis/upload/admin-avatar', formData, {
+    formData.append('image', file);
+    return axiosClient.post(API_ROUTES.UPLOAD.ADMIN_AVATAR, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-  },
+  }
 };
 
 export default uploadApi;

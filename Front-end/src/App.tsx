@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import FloatingContact from './components/FloatingContact/FloatingContact';
+import FloatingContact from './components/ui/FloatingContact/FloatingContact';
 
 // Route-level code splitting — each page loads only when navigated to
 const HomePage          = lazy(() => import('./pages/HomePage/HomePage'));
@@ -16,6 +16,9 @@ const NotFoundPage      = lazy(() => import('./pages/NotFound/NotFoundPage'));
 const UnauthorizedPage  = lazy(() => import('./pages/NotFound/UnauthorizedPage'));
 const ForbiddenPage     = lazy(() => import('./pages/NotFound/ForbiddenPage'));
 const ServerErrorPage   = lazy(() => import('./pages/NotFound/ServerErrorPage'));
+
+// Admin Dashboard
+const AdminApp          = lazy(() => import('./admin/AdminApp'));
 
 // Minimal full-screen fallback shown during chunk load
 const PageLoader: React.FC = () => (
@@ -41,6 +44,9 @@ const App: React.FC = () => (
         <Route path="/courses/:slug"   element={<CourseDetail />} />
         <Route path="/dashboard"       element={<StudentDashboard />} />
         <Route path="/my-courses"      element={<MyCoursesPage />} />
+        
+        {/* Admin Route */}
+        <Route path="/admin/*"         element={<AdminApp />} />
         
         {/* Error Pages */}
         <Route path="/401"             element={<UnauthorizedPage />} />

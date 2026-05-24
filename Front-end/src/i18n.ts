@@ -1,11 +1,12 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { STORAGE_KEYS } from './constants/storageKeys';
 
 import enTranslation from './locales/en.json';
 import viTranslation from './locales/vi.json';
 
 // Lấy ngôn ngữ đã lưu hoặc dùng mặc định
-const savedLanguage = localStorage.getItem('i18nextLng') || 'vi';
+const savedLanguage = localStorage.getItem(STORAGE_KEYS.I18N_LANGUAGE) || 'vi';
 
 i18n
   .use(initReactI18next)

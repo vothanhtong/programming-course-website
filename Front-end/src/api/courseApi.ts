@@ -1,4 +1,5 @@
 import axiosClient from './axiosClient';
+import { API_ROUTES } from '../constants/apiRoutes';
 import type { Course, CoursesResponse, EnrollFormData } from '../types';
 
 interface CourseListParams {
@@ -12,22 +13,22 @@ interface CourseListParams {
 
 const courseApi = {
   getCourses: (params?: CourseListParams): Promise<CoursesResponse> =>
-    axiosClient.get('/apis/courses', { params }),
+    axiosClient.get(API_ROUTES.COURSES.BASE, { params }),
 
   getFeatured: (): Promise<{ courses: Course[] }> =>
-    axiosClient.get('/apis/courses/featured'),
+    axiosClient.get(API_ROUTES.COURSES.FEATURED),
 
   getCourseDetail: (slug: string): Promise<{ course: Course; lessons: any[]; reviews: any[] }> =>
-    axiosClient.get(`/apis/courses/${slug}`),
+    axiosClient.get(`${API_ROUTES.COURSES.BASE}/${slug}`),
 
   getCategories: (): Promise<{ categories: any[] }> =>
-    axiosClient.get('/apis/categories'),
+    axiosClient.get(API_ROUTES.CATEGORIES.BASE),
 
   enroll: (data: EnrollFormData): Promise<{ message: string; enrollmentId: string }> =>
-    axiosClient.post('/apis/courses/enroll', data),
+    axiosClient.post(API_ROUTES.COURSES.ENROLL, data),
 
   postReview: (data: { courseId: string; studentName: string; rating: number; comment?: string }) =>
-    axiosClient.post('/apis/courses/review', data),
+    axiosClient.post(API_ROUTES.COURSES.REVIEW, data),
 };
 
 export default courseApi;

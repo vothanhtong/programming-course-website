@@ -1,194 +1,90 @@
-import { Request, Response } from 'express';
-import mongoose from 'mongoose';
-import QuizModel from '../models/course.models/quiz.model';
-import QuizResultModel from '../models/course.models/quizResult.model';
-import CourseModel from '../models/course.models/course.model';
+import { Request, Response, NextFunction } from 'express';
 import { getStudentId } from '../types';
-import logger from '../configs/logger';
+import { getParam } from '../utils/validators';
+import { quizService } from '../services/quiz.service';
 
 // ==========================================
 // ADMIN CONTROLLERS
 // ==========================================
 
-export const createQuiz = async (req: Request, res: Response): Promise<Response> => {
+export const createQuiz = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { courseId, title, description, questions, passingScore, isPublished, lessonId } = req.body;
+    const { courseId, title, questions } = req.body;
     if (!courseId || !title || !questions || questions.length === 0) {
-      return res.status(400).json({ message: 'courseId, title và ít nhất 1 câu hỏi là bắt buộc' });
+      res.status(400).json({ message: 'courseId, title và ít nhất 1 câu hỏi là bắt buộc' }); return;
     }
 
-    const newQuiz = new QuizModel({
-      courseId,
-      title,
-      description,
-      questions,
-      passingScore,
-      isPublished,
-      lessonId: lessonId || undefined
-    });
-
-    await newQuiz.save();
-    return res.status(201).json({ message: 'Tạo quiz thành công', quiz: newQuiz });
-  } catch (err: any) {
-    logger.error(`[createQuiz] ${err.message}`);
-    return res.status(500).json({ message: 'Lỗi server' });
-  }
+    const quiz = await quizService.createQuiz(req.body);
+    res.status(201).json({ message: 'Tạo quiz thành công', quiz });
+  } catch (err) { next(err); }
 };
 
-export const updateQuiz = async (req: Request, res: Response): Promise<Response> => {
+export const updateQuiz = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { id } = req.params;
-    const updateData = req.body;
-
-    const updatedQuiz = await QuizModel.findByIdAndUpdate(id, updateData, { new: true });
-    if (!updatedQuiz) {
-      return res.status(404).json({ message: 'Không tìm thấy quiz' });
-    }
-
-    return res.status(200).json({ message: 'Cập nhật thành công', quiz: updatedQuiz });
-  } catch (err: any) {
-    logger.error(`[updateQuiz] ${err.message}`);
-    return res.status(500).json({ message: 'Lỗi server' });
-  }
+    const id = getParam(req.params.id);
+    const quiz = await quizService.updateQuiz(id, req.body);
+    res.status(200).json({ message: 'Cập nhật thành công', quiz });
+  } catch (err) { next(err); }
 };
 
-export const deleteQuiz = async (req: Request, res: Response): Promise<Response> => {
+export const deleteQuiz = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { id } = req.params;
-    const deleted = await QuizModel.findByIdAndDelete(id);
-    if (!deleted) {
-      return res.status(404).json({ message: 'Không tìm thấy quiz' });
-    }
-    // Delete related results
-    await QuizResultModel.deleteMany({ quizId: id });
-
-    return res.status(200).json({ message: 'Xóa quiz thành công' });
-  } catch (err: any) {
-    logger.error(`[deleteQuiz] ${err.message}`);
-    return res.status(500).json({ message: 'Lỗi server' });
-  }
+    const id = getParam(req.params.id);
+    await quizService.deleteQuiz(id);
+    res.status(200).json({ message: 'Xóa quiz thành công' });
+  } catch (err) { next(err); }
 };
 
-export const getAdminQuizzes = async (req: Request, res: Response): Promise<Response> => {
+export const getAdminQuizzes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { courseId } = req.query;
-    const filter = courseId ? { courseId } : {};
-    const quizzes = await QuizModel.find(filter).sort({ createdAt: -1 });
-    return res.status(200).json({ quizzes });
-  } catch (err: any) {
-    logger.error(`[getAdminQuizzes] ${err.message}`);
-    return res.status(500).json({ message: 'Lỗi server' });
-  }
+    const result = await quizService.getAdminQuizzes(req.query);
+    res.status(200).json(result);
+  } catch (err) { next(err); }
 };
-
 
 // ==========================================
 // STUDENT CONTROLLERS
 // ==========================================
 
-export const getCourseQuizzes = async (req: Request, res: Response): Promise<Response> => {
+export const getCourseQuizzes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { courseId } = req.params;
-    const quizzes = await QuizModel.find({ courseId, isPublished: true }).select('-questions.correctOptionIndex -questions.explanation');
-    return res.status(200).json({ quizzes });
-  } catch (err: any) {
-    logger.error(`[getCourseQuizzes] ${err.message}`);
-    return res.status(500).json({ message: 'Lỗi server' });
-  }
+    const courseId = getParam(req.params.courseId);
+    const result = await quizService.getCourseQuizzes(courseId);
+    res.status(200).json(result);
+  } catch (err) { next(err); }
 };
 
-export const getQuizForStudent = async (req: Request, res: Response): Promise<Response> => {
+export const getQuizForStudent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { id } = req.params;
-    const quiz = await QuizModel.findOne({ _id: id, isPublished: true }).lean();
-    if (!quiz) {
-      return res.status(404).json({ message: 'Không tìm thấy quiz hoặc quiz chưa được publish' });
-    }
-
-    // Strip answers
-    const sanitizedQuestions = quiz.questions.map(q => {
-      const { correctOptionIndex, explanation, ...rest } = q;
-      return rest;
-    });
-
-    return res.status(200).json({ quiz: { ...quiz, questions: sanitizedQuestions } });
-  } catch (err: any) {
-    logger.error(`[getQuizForStudent] ${err.message}`);
-    return res.status(500).json({ message: 'Lỗi server' });
-  }
+    const id = getParam(req.params.id);
+    const result = await quizService.getQuizForStudent(id);
+    res.status(200).json(result);
+  } catch (err) { next(err); }
 };
 
-export const submitQuiz = async (req: Request, res: Response): Promise<Response> => {
+export const submitQuiz = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const studentId = getStudentId(req);
-    const { id } = req.params;
-    const { answers } = req.body; // Array of selected option indexes
+    const { answers } = req.body;
 
-    if (!studentId) return res.status(401).json({ message: 'Chưa đăng nhập' });
-    if (!Array.isArray(answers)) return res.status(400).json({ message: 'answers phải là một mảng các lựa chọn' });
+    if (!studentId) { res.status(401).json({ message: 'Chưa đăng nhập' }); return; }
+    if (!Array.isArray(answers)) { res.status(400).json({ message: 'answers phải là một mảng các lựa chọn' }); return; }
 
-    const quiz = await QuizModel.findById(id);
-    if (!quiz || !quiz.isPublished) {
-      return res.status(404).json({ message: 'Không tìm thấy quiz' });
-    }
-
-    if (answers.length !== quiz.questions.length) {
-      return res.status(400).json({ message: 'Số lượng câu trả lời không khớp với số lượng câu hỏi' });
-    }
-
-    let correctAnswersCount = 0;
-    quiz.questions.forEach((q, index) => {
-      if (answers[index] === q.correctOptionIndex) {
-        correctAnswersCount++;
-      }
-    });
-
-    const score = (correctAnswersCount / quiz.questions.length) * 100;
-    const passed = score >= quiz.passingScore;
-
-    const quizResult = new QuizResultModel({
-      studentId,
-      quizId: id,
-      score,
-      totalQuestions: quiz.questions.length,
-      correctAnswers: correctAnswersCount,
-      passed,
-      answers
-    });
-
-    await quizResult.save();
-
-    // Trả về full questions có explanation để review
-    return res.status(200).json({
+    const id = getParam(req.params.id);
+    const result = await quizService.submitQuiz(id, studentId, answers);
+    res.status(200).json({
       message: 'Nộp bài thành công',
-      result: quizResult,
-      quizReview: quiz // Trả về quiz đầy đủ để hiển thị đáp án đúng
+      ...result
     });
-  } catch (err: any) {
-    logger.error(`[submitQuiz] ${err.message}`);
-    return res.status(500).json({ message: 'Lỗi server' });
-  }
+  } catch (err) { next(err); }
 };
 
-export const getStudentQuizHistory = async (req: Request, res: Response): Promise<Response> => {
+export const getStudentQuizHistory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const studentId = getStudentId(req);
-    const { courseId } = req.query;
-    if (!studentId) return res.status(401).json({ message: 'Chưa đăng nhập' });
+    if (!studentId) { res.status(401).json({ message: 'Chưa đăng nhập' }); return; }
 
-    let filter: any = { studentId };
-
-    if (courseId) {
-      // Tìm các quiz thuộc courseId này
-      const quizzes = await QuizModel.find({ courseId }).select('_id');
-      const quizIds = quizzes.map(q => q._id);
-      filter.quizId = { $in: quizIds };
-    }
-
-    const history = await QuizResultModel.find(filter).sort({ createdAt: -1 }).populate('quizId', 'title passingScore');
-    return res.status(200).json({ history });
-  } catch (err: any) {
-    logger.error(`[getStudentQuizHistory] ${err.message}`);
-    return res.status(500).json({ message: 'Lỗi server' });
-  }
+    const result = await quizService.getStudentQuizHistory(studentId, req.query);
+    res.status(200).json(result);
+  } catch (err) { next(err); }
 };

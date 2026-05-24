@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import authApi from '../../api/authApi';
-import AuthLayout from '../../components/Auth/AuthLayout';
-import AuthInput from '../../components/Auth/AuthInput';
+import AuthLayout from '../../components/ui/Auth/AuthLayout';
+import AuthInput from '../../components/ui/Auth/AuthInput';
 import { AuthAlert } from './LoginPage';
 
 const ForgotPasswordPage: React.FC = () => {

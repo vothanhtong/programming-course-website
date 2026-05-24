@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import AuthLayout from '../../components/Auth/AuthLayout';
-import AuthInput from '../../components/Auth/AuthInput';
+import AuthLayout from '../../components/ui/Auth/AuthLayout';
+import AuthInput from '../../components/ui/Auth/AuthInput';
 import { AuthAlert } from './LoginPage';
 
 const RegisterPage: React.FC = () => {

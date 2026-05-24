@@ -1,10 +1,10 @@
 import React from 'react';
-import Navbar from '../../components/Navbar/Navbar';
-import Hero from '../../components/Hero/Hero';
-import Features from '../../components/Features/Features';
-import CoursesSection from '../../components/CoursesSection/CoursesSection';
-import Contact from '../../components/Contact/Contact';
-import Footer from '../../components/Footer/Footer';
+import Navbar from '../../components/layout/Navbar/Navbar';
+import Hero from '../../components/ui/Hero/Hero';
+import Features from '../../components/ui/Features/Features';
+import CoursesSection from '../../components/ui/CoursesSection/CoursesSection';
+import Contact from '../../components/ui/Contact/Contact';
+import Footer from '../../components/layout/Footer/Footer';
 
 const HomePage: React.FC = () => (
   <>

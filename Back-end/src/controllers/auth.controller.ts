@@ -1,23 +1,12 @@
-import { Request, Response } from 'express';
-import crypto from 'crypto';
-import { signStudentToken } from '../configs/jwt.config';
-import StudentModel from '../models/student.model';
-import { sendMail, resetPasswordTemplate } from '../utils/mailer';
-import logger from '../configs/logger';
+import { Request, Response, NextFunction } from 'express';
+import logger from '../config/logger';
 import { getStudentId } from '../types';
-import {
-  EMAIL_REGEX, isValidAvatarUrl, sanitizeStr,
-} from '../utils/validators';
+import { EMAIL_REGEX, isValidAvatarUrl, sanitizeStr } from '../utils/validators';
+import { authService } from '../services/auth.service';
 
-const signToken = (studentId: string): string => signStudentToken(studentId);
-
-// ── Public ────────────────────────────────────────────────
-
-export const register = async (req: Request, res: Response): Promise<void> => {
+export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { fullName, email, password } = req.body as {
-      fullName: string; email: string; password: string;
-    };
+    const { fullName, email, password } = req.body;
 
     if (!fullName?.trim() || !email?.trim() || !password) {
       res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin' }); return;
@@ -32,98 +21,56 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       res.status(400).json({ message: 'Họ tên quá dài' }); return;
     }
 
-    const exists = await StudentModel.findOne({ email: email.toLowerCase() }).lean();
-    if (exists) {
-      res.status(409).json({ message: 'Email đã được đăng ký' }); return;
-    }
-
-    const student = await StudentModel.create({
-      fullName: sanitizeStr(fullName, 100),
-      email:    email.toLowerCase().trim(),
-      password,
-      isVerified: true,
+    const result = await authService.register({
+      fullName: fullName.trim(),
+      email: email.toLowerCase().trim(),
+      password
     });
-
-    const token = signToken(student._id.toString());
-
-    // Populate để trả về đầy đủ thông tin ngay sau đăng ký
-    const populated = await StudentModel.findById(student._id)
-      .select('-password -verifyToken -resetToken -verifyTokenExpiry -resetTokenExpiry')
-      .populate('enrolledCourses', 'title slug thumbnail')
-      .lean();
 
     res.status(201).json({
       message: 'Đăng ký thành công!',
-      token,
-      student: populated,
+      ...result
     });
   } catch (err) {
-    logger.error('[register]', err);
-    res.status(500).json({ message: 'Lỗi server' });
+    next(err);
   }
 };
 
-export const login = async (req: Request, res: Response): Promise<void> => {
+export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { email, password } = req.body as { email: string; password: string };
+    const { email, password } = req.body;
 
     if (!email?.trim() || !password) {
       res.status(400).json({ message: 'Vui lòng nhập email và mật khẩu' }); return;
     }
 
-    const student = await StudentModel.findOne({ email: email.toLowerCase().trim() });
-    if (!student) {
-      // Timing-safe: không tiết lộ email có tồn tại hay không
-      res.status(401).json({ message: 'Email hoặc mật khẩu không đúng' }); return;
-    }
-
-    const isMatch = await student.comparePassword(password);
-    if (!isMatch) {
-      res.status(401).json({ message: 'Email hoặc mật khẩu không đúng' }); return;
-    }
-
-    const token = signToken(student._id.toString());
-
-    // Populate enrolledCourses để frontend có đủ thông tin ngay sau đăng nhập
-    const populated = await StudentModel.findById(student._id)
-      .select('-password -verifyToken -resetToken -verifyTokenExpiry -resetTokenExpiry')
-      .populate('enrolledCourses', 'title slug thumbnail')
-      .lean();
+    const result = await authService.login({
+      email: email.toLowerCase().trim(),
+      password
+    });
 
     res.json({
       message: 'Đăng nhập thành công!',
-      token,
-      student: populated,
+      ...result
     });
   } catch (err) {
-    logger.error('[login]', err);
-    res.status(500).json({ message: 'Lỗi server' });
+    next(err);
   }
 };
 
-// ── Protected ─────────────────────────────────────────────
-
-export const getMe = async (req: Request, res: Response): Promise<void> => {
+export const getMe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const student = await StudentModel.findById(getStudentId(req))
-      .select('-password -verifyToken -resetToken -verifyTokenExpiry -resetTokenExpiry')
-      .populate('enrolledCourses', 'title slug thumbnail')
-      .lean();
-    if (!student) { res.status(404).json({ message: 'Không tìm thấy tài khoản' }); return; }
+    const student = await authService.getMe(getStudentId(req));
     res.json({ student });
   } catch (err) {
-    logger.error('[getMe]', err);
-    res.status(500).json({ message: 'Lỗi server' });
+    next(err);
   }
 };
 
-export const updateProfile = async (req: Request, res: Response): Promise<void> => {
+export const updateProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { fullName, phone, bio, avatar } = req.body as {
-      fullName?: string; phone?: string; bio?: string; avatar?: string;
-    };
+    const { fullName, phone, bio, avatar } = req.body;
 
-    // Validate avatar URL nếu có
     if (avatar !== undefined && !isValidAvatarUrl(avatar)) {
       res.status(400).json({ message: 'URL ảnh đại diện không hợp lệ' }); return;
     }
@@ -137,21 +84,16 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
     if (bio !== undefined)    update.bio    = sanitizeStr(bio, 500);
     if (avatar !== undefined) update.avatar = sanitizeStr(avatar, 500);
 
-    const student = await StudentModel.findByIdAndUpdate(getStudentId(req), update, { new: true })
-      .select('-password -verifyToken -resetToken -verifyTokenExpiry -resetTokenExpiry');
-    if (!student) { res.status(404).json({ message: 'Không tìm thấy tài khoản' }); return; }
+    const student = await authService.updateProfile(getStudentId(req), update);
     res.json({ message: 'Cập nhật thành công', student });
   } catch (err) {
-    logger.error('[updateProfile]', err);
-    res.status(500).json({ message: 'Lỗi server' });
+    next(err);
   }
 };
 
-export const changePassword = async (req: Request, res: Response): Promise<void> => {
+export const changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { currentPassword, newPassword } = req.body as {
-      currentPassword: string; newPassword: string;
-    };
+    const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
       res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin' }); return;
@@ -163,63 +105,31 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
       res.status(400).json({ message: 'Mật khẩu quá dài' }); return;
     }
 
-    const student = await StudentModel.findById(getStudentId(req));
-    if (!student) { res.status(404).json({ message: 'Không tìm thấy tài khoản' }); return; }
-
-    const isMatch = await student.comparePassword(currentPassword);
-    if (!isMatch) {
-      res.status(401).json({ message: 'Mật khẩu hiện tại không đúng' }); return;
-    }
-
-    student.password = newPassword;
-    await student.save();
+    await authService.changePassword(getStudentId(req), { currentPassword, newPassword });
     res.json({ message: 'Đổi mật khẩu thành công' });
   } catch (err) {
-    logger.error('[changePassword]', err);
-    res.status(500).json({ message: 'Lỗi server' });
+    next(err);
   }
 };
 
-export const forgotPassword = async (req: Request, res: Response): Promise<void> => {
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { email } = req.body as { email: string };
+    const { email } = req.body;
     if (!email?.trim()) { res.status(400).json({ message: 'Vui lòng nhập email' }); return; }
 
-    // Luôn trả về cùng message để tránh email enumeration
-    const genericMsg = 'Nếu email tồn tại, chúng tôi đã gửi hướng dẫn đặt lại mật khẩu.';
-
-    const student = await StudentModel.findOne({ email: email.toLowerCase().trim() });
-    if (!student) { res.json({ message: genericMsg }); return; }
-
-    const token = crypto.randomBytes(32).toString('hex');
-    student.resetToken       = token;
-    student.resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 giờ
-    await student.save();
-
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
-    const resetUrl    = `${frontendUrl}/reset-password?token=${token}`;
-
-    const sent = await sendMail({
-      to:      student.email,
-      subject: 'Đặt lại mật khẩu - Khóa Lập Trình',
-      html:    resetPasswordTemplate(resetUrl, student.fullName),
-    });
-
-    // KHÔNG log reset URL ra console trong production
-    if (!sent && process.env.NODE_ENV !== 'production') {
-      logger.warn(`[forgotPassword] SMTP chưa cấu hình. Token cho ${email} đã được tạo.`);
-    }
-
-    res.json({ message: genericMsg });
+    
+    await authService.forgotPassword(email.toLowerCase().trim(), frontendUrl);
+    
+    res.json({ message: 'Nếu email tồn tại, chúng tôi đã gửi hướng dẫn đặt lại mật khẩu.' });
   } catch (err) {
-    logger.error('[forgotPassword]', err);
-    res.status(500).json({ message: 'Lỗi server' });
+    next(err);
   }
 };
 
-export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+export const resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { token, newPassword } = req.body as { token: string; newPassword: string };
+    const { token, newPassword } = req.body;
 
     if (!token || !newPassword) {
       res.status(400).json({ message: 'Thiếu thông tin' }); return;
@@ -230,28 +140,13 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
     if (newPassword.length > 128) {
       res.status(400).json({ message: 'Mật khẩu quá dài' }); return;
     }
-    // Validate token format (hex 64 chars)
     if (!/^[a-f0-9]{64}$/.test(token)) {
       res.status(400).json({ message: 'Token không hợp lệ' }); return;
     }
 
-    const student = await StudentModel.findOne({
-      resetToken:       token,
-      resetTokenExpiry: { $gt: new Date() },
-    });
-
-    if (!student) {
-      res.status(400).json({ message: 'Token không hợp lệ hoặc đã hết hạn' }); return;
-    }
-
-    student.password         = newPassword;
-    student.resetToken       = null as any;
-    student.resetTokenExpiry = null as any;
-    await student.save();
-
+    await authService.resetPassword({ token, newPassword });
     res.json({ message: 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập.' });
   } catch (err) {
-    logger.error('[resetPassword]', err);
-    res.status(500).json({ message: 'Lỗi server' });
+    next(err);
   }
 };

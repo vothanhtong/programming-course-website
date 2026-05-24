@@ -37,11 +37,15 @@
     "webpack-dev-server": "^4.15.2"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.2.3",
+    "antd": "^6.4.3",
     "axios": "^1.6.7",
+    "dayjs": "^1.11.20",
     "i18next": "^26.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-i18next": "^17.0.8",
-    "react-router-dom": "^7.1.5"
+    "react-router-dom": "^7.1.5",
+    "recharts": "^3.8.1"
   }
 }
