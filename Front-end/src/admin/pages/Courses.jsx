@@ -89,7 +89,7 @@ const Courses = () => {
     } catch { message.error('Xóa thất bại'); }
   };
 
-  const columns = [
+  const columns = React.useMemo(() => [
     {
       title: 'Khóa học',
       key: 'title',
@@ -183,7 +183,7 @@ const Courses = () => {
         </Space>
       ),
     },
-  ];
+  ], [page]);
 
   return (
     <div>

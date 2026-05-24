@@ -129,3 +129,42 @@ export const newStudentAccountTemplate = (
     </p>`;
   return baseLayout('linear-gradient(135deg,#0f172a,#1e3a5f)', '&#127891; T&#224;i kho&#7843;n h&#7885;c t&#7853;p c&#7911;a b&#7841;n', body);
 };
+
+export const enrollmentRequestTemplate = (fullName: string, courseName: string, amount: number): string => {
+  const formattedAmount = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  const body = `
+    <p style="margin:0 0 16px;color:#333;font-size:16px;">Xin ch&#224;o <strong>${fullName}</strong>,</p>
+    <p style="margin:0 0 24px;color:#555;font-size:15px;line-height:1.6;">
+      Ch&#250;ng t&#244;i &#273;&#227; ghi nh&#7853;n y&#234;u c&#7847;u &#273;&#259;ng k&#253; kh&#243;a h&#7885;c c&#7911;a b&#7841;n.
+    </p>
+    <div style="background:#f8faff;border:1px solid #dbeafe;border-radius:8px;padding:20px 24px;margin:0 0 24px;">
+      <p style="margin:0 0 10px;color:#333;font-size:15px;">&#128218; <strong>Kh&#243;a h&#7885;c:</strong> ${courseName}</p>
+      <p style="margin:0;color:#333;font-size:15px;">&#128181; <strong>S&#7889; ti&#7873;n:</strong> ${formattedAmount}</p>
+    </div>
+    <p style="margin:0 0 24px;color:#555;font-size:15px;line-height:1.6;">
+      &#9888;&#65039; Vui l&#242;ng th&#7921;c hi&#7879;n thanh to&#225;n (n&#7871;u ch&#432;a chuy&#7875;n kho&#7843;n) &#273;&#7875; ch&#250;ng t&#244;i k&#237;ch ho&#7841;t kh&#243;a h&#7885;c cho b&#7841;n m&#7897;t c&#225;ch s&#7899;m nh&#7845;t.
+    </p>
+    <hr style="border:none;border-top:1px solid #f0f0f0;margin:24px 0;">
+    <p style="margin:0;color:#aaa;font-size:13px;">
+      N&#7871;u b&#7841;n &#273;&#227; thanh to&#225;n, vui l&#242;ng b&#7887; qua email n&#224;y. Admin s&#7869; duy&#7879;t v&#224; th&#244;ng b&#225;o l&#7841;i cho b&#7841;n.
+    </p>`;
+  return baseLayout('linear-gradient(135deg,#0ea5e9,#0284c7)', '&#128196; X&#225;c nh&#7853;n y&#234;u c&#7847;u &#273;&#259;ng k&#253;', body);
+};
+
+export const enrollmentApprovedTemplate = (fullName: string, courseName: string, loginUrl: string): string => {
+  const body = `
+    <p style="margin:0 0 16px;color:#333;font-size:16px;">Xin ch&#224;o <strong>${fullName}</strong>,</p>
+    <p style="margin:0 0 24px;color:#555;font-size:15px;line-height:1.6;">
+      Ch&#250;c m&#7915;ng b&#7841;n! Y&#234;u c&#7847;u &#273;&#259;ng k&#253; kh&#243;a h&#7885;c <strong>${courseName}</strong> &#273;&#227; &#273;&#432;&#7907;c ph&#234; duy&#7879;t.
+    </p>
+    <div style="text-align:center;margin:32px 0;">
+      <a href="${loginUrl}" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:16px;font-weight:600;">
+        V&#224;o h&#7885;c ngay
+      </a>
+    </div>
+    <hr style="border:none;border-top:1px solid #f0f0f0;margin:24px 0;">
+    <p style="margin:0;color:#aaa;font-size:13px;">
+      Ch&#250;c b&#7841;n c&#243; nh&#7919;ng tr&#7843;i nghi&#7879;m h&#7885;c t&#7853;p tuy&#7879;t v&#7901;i nh&#7845;t t&#7841;i Kh&#243;a L&#7853;p Tr&#236;nh.
+    </p>`;
+  return baseLayout('linear-gradient(135deg,#10b981,#047857)', '&#10024; Kh&#243;a h&#7885;c c&#7911;a b&#7841;n &#273;&#227; s&#7861;n s&#224;ng', body);
+};

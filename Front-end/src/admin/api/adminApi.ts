@@ -62,9 +62,7 @@ const adminApi = {
   uploadImage: (file) => {
     const formData = new FormData();
     formData.append('image', file);
-    return axiosClient.post(API_ROUTES.UPLOAD.IMAGE, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return axiosClient.post(API_ROUTES.UPLOAD.IMAGE, formData);
   },
   deleteImage: (filename) => axiosClient.delete(`${API_ROUTES.UPLOAD.IMAGE}/${filename}`),
 

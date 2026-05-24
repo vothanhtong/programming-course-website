@@ -2,22 +2,36 @@ import React, { useRef, useState } from 'react';
 import uploadApi from '../../../api/uploadApi';
 
 interface ImageUploaderProps {
-  onUpload: (url: string) => void;
+  onUpload?: (url: string) => void;
   currentImage?: string;
+  onChange?: (url: string) => void;
+  value?: string;
   type?: 'student-avatar' | 'admin-avatar' | 'course-image';
   className?: string;
+  shape?: 'circle' | 'square';
+  size?: number;
+  placeholder?: string;
 }
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   onUpload,
   currentImage,
+  onChange,
+  value,
   type = 'course-image',
   className = '',
+  shape = 'square',
+  size = 64,
+  placeholder,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [preview, setPreview] = useState<string | null>(currentImage || null);
+  const [preview, setPreview] = useState<string | null>(currentImage || value || null);
+
+  React.useEffect(() => {
+    setPreview(currentImage || value || null);
+  }, [currentImage, value]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,10 +65,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       } else if (type === 'admin-avatar') {
         response = await uploadApi.uploadAdminAvatar(file);
       } else {
-        response = await uploadApi.uploadCourseImage(file);
+        response = await uploadApi.uploadImage(file);
       }
 
-      onUpload(response.url);
+      if (onUpload) onUpload(response.url);
+      if (onChange) onChange(response.url);
       setError('');
     } catch (err: any) {
       setError(err?.message || 'Upload thất bại. Vui lòng thử lại.');
@@ -76,7 +91,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             <img
               src={preview}
               alt="Preview"
-              className="w-16 h-16 rounded-lg object-cover"
+              className="object-cover"
+              style={{
+                width: size,
+                height: size,
+                borderRadius: shape === 'circle' ? '50%' : '8px'
+              }}
             />
             <button
               type="button"
@@ -98,7 +118,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           disabled={loading}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium rounded-lg transition-all"
         >
-          {loading ? 'Đang tải...' : preview ? 'Thay đổi ảnh' : 'Chọn ảnh'}
+          {loading ? 'Đang tải...' : preview ? 'Thay đổi ảnh' : (placeholder || 'Chọn ảnh')}
         </button>
 
         <input

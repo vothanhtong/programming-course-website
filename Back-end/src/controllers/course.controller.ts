@@ -77,7 +77,7 @@ export const postEnroll = async (req: Request, res: Response, next: NextFunction
     const studentId = getStudentId(req) as string | undefined;
     const enrollment = await enrollmentService.postEnroll(req.body, studentId);
     
-    res.status(201).json({ message: 'Đăng ký thành công! Chúng tôi sẽ liên hệ với bạn sớm.', enrollmentId: enrollment._id });
+    res.status(201).json({ message: 'Đăng ký thành công! Chúng tôi sẽ liên hệ với bạn sớm.', enrollmentId: enrollment?._id });
   } catch (err) { next(err); }
 };
 

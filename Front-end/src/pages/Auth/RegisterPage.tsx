@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuthStore } from '../../store/useAuthStore';
 import AuthLayout from '../../components/ui/Auth/AuthLayout';
 import AuthInput from '../../components/ui/Auth/AuthInput';
 import { AuthAlert } from './LoginPage';
 
 const RegisterPage: React.FC = () => {
-  const { register } = useAuth();
+  const { register  } = useAuthStore();
   const navigate     = useNavigate();
 
   const [form, setForm]       = useState({ fullName: '', email: '', password: '', confirm: '' });

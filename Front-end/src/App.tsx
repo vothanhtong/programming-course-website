@@ -1,6 +1,7 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import FloatingContact from './components/ui/FloatingContact/FloatingContact';
+import { useAuthStore } from './store/useAuthStore';
 
 // Route-level code splitting — each page loads only when navigated to
 const HomePage          = lazy(() => import('./pages/HomePage/HomePage'));
@@ -12,6 +13,8 @@ const ProfilePage       = lazy(() => import('./pages/Profile/ProfilePage'));
 const CourseDetail      = lazy(() => import('./pages/CourseDetail/CourseDetail'));
 const StudentDashboard  = lazy(() => import('./pages/Dashboard/StudentDashboard'));
 const MyCoursesPage     = lazy(() => import('./pages/Dashboard/MyCoursesPage'));
+const MockPaymentGateway= lazy(() => import('./pages/MockPaymentGateway'));
+const PaymentResult     = lazy(() => import('./pages/PaymentResult'));
 const NotFoundPage      = lazy(() => import('./pages/NotFound/NotFoundPage'));
 const UnauthorizedPage  = lazy(() => import('./pages/NotFound/UnauthorizedPage'));
 const ForbiddenPage     = lazy(() => import('./pages/NotFound/ForbiddenPage'));
@@ -30,8 +33,15 @@ const PageLoader: React.FC = () => (
   </div>
 );
 
-const App: React.FC = () => (
-  <>
+const App: React.FC = () => {
+  const checkAuth = useAuthStore((state) => state.checkAuth);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  return (
+    <>
     <FloatingContact />
     <Suspense fallback={<PageLoader />}>
       <Routes>
@@ -44,6 +54,8 @@ const App: React.FC = () => (
         <Route path="/courses/:slug"   element={<CourseDetail />} />
         <Route path="/dashboard"       element={<StudentDashboard />} />
         <Route path="/my-courses"      element={<MyCoursesPage />} />
+        <Route path="/mock-payment"    element={<MockPaymentGateway />} />
+        <Route path="/payment-result"  element={<PaymentResult />} />
         
         {/* Admin Route */}
         <Route path="/admin/*"         element={<AdminApp />} />
@@ -56,6 +68,7 @@ const App: React.FC = () => (
       </Routes>
     </Suspense>
   </>
-);
+  );
+};
 
 export default App;

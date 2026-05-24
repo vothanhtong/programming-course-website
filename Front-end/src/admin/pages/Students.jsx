@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   Table, Button, Space, Tag, Modal, Form, Input, Select,
   Popconfirm, Typography, message, Card, Tooltip, Drawer,
@@ -166,7 +166,7 @@ const Students = () => {
   };
 
   // ── Table Columns ──────────────────────────────────────
-  const columns = [
+  const columns = useMemo(() => [
     {
       title: 'Học viên',
       key: 'user',
@@ -240,7 +240,7 @@ const Students = () => {
         </Space>
       ),
     },
-  ];
+  ], [page, fetchStudents]);
 
   return (
     <div>

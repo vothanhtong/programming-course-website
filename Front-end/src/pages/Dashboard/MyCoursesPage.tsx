@@ -4,7 +4,7 @@ import Navbar from '../../components/layout/Navbar/Navbar';
 import Footer from '../../components/layout/Footer/Footer';
 import CourseCardSkeleton from '../../components/common/Skeleton/CourseCardSkeleton';
 import progressApi from '../../api/progressApi';
-import { useAuth } from '../../context/AuthContext';
+import { useAuthStore } from '../../store/useAuthStore';
 import { LEVEL_MAP, LEVEL_COLORS } from '../../utils/constants';
 
 export interface CourseWithProgress {
@@ -119,7 +119,7 @@ const FilterBtn: React.FC<{ active: boolean; onClick: () => void; children: Reac
 
 const MyCoursesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { student, loading: authLoading } = useAuth();
+  const { student, loading: authLoading  } = useAuthStore();
   const [courses, setCourses] = useState<CourseWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState('');
@@ -170,10 +170,10 @@ const MyCoursesPage: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden" style={{ background: 'linear-gradient(135deg,#020817 0%,#0f172a 60%,#0d1526 100%)' }}>
+    <div className="min-h-screen w-full overflow-x-hidden flex flex-col" style={{ background: 'linear-gradient(135deg,#020817 0%,#0f172a 60%,#0d1526 100%)' }}>
       <Navbar />
 
-      <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-16">
+      <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-16">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-2">Khóa Học Của Tôi</h1>

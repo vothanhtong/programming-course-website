@@ -2,13 +2,14 @@ import EnrollmentModel from '../models/course.models/enrollment.model';
 import CourseModel from '../models/course.models/course.model';
 import StudentModel from '../models/student.model';
 import { initializeProgressForEnrollment } from '../controllers/progress.controller';
+import { sendMail, enrollmentRequestTemplate, enrollmentApprovedTemplate } from '../utils/mailer';
 import { isValidId } from '../utils/validators';
 import { invalidateAdminStatsCache } from '../utils/cache';
 import mongoose from 'mongoose';
 
 export const enrollmentService = {
   async postEnroll(data: any, studentId?: string) {
-    const course = await CourseModel.findById(data.courseId).select('isPublished isFree price salePrice').lean();
+    const course = await CourseModel.findById(data.courseId).select('title isPublished isFree price salePrice').lean();
     if (!course?.isPublished) {
       const err: any = new Error('Khóa học không tồn tại');
       err.status = 404;
@@ -24,12 +25,23 @@ export const enrollmentService = {
     const existing = await EnrollmentModel.findOne({
       courseId: data.courseId,
       studentEmail: resolvedEmail,
-    }).lean();
+    });
     
     if (existing) {
-      const err: any = new Error('Bạn đã đăng ký khóa học này rồi');
-      err.status = 409;
-      throw err;
+      if (existing.paymentStatus === 'paid') {
+        const err: any = new Error('Bạn đã đăng ký khóa học này rồi');
+        err.status = 409;
+        throw err;
+      } else {
+        // Cập nhật lại thông tin phòng trường hợp người dùng đổi phương thức thanh toán
+        existing.studentName = data.studentName.trim();
+        existing.studentPhone = data.studentPhone?.trim() || '';
+        existing.paymentMethod = data.paymentMethod || 'other';
+        existing.note = data.note?.trim() || '';
+        existing.amount = course.salePrice != null ? course.salePrice : course.price;
+        await existing.save();
+        return existing.toObject();
+      }
     }
 
     const amount = course.salePrice != null ? course.salePrice : course.price;
@@ -37,7 +49,7 @@ export const enrollmentService = {
 
     const session = await mongoose.startSession();
     try {
-      let enrollment;
+      let enrollment: any;
       await session.withTransaction(async () => {
         enrollment = await EnrollmentModel.create([{
           courseId: data.courseId,
@@ -68,6 +80,24 @@ export const enrollmentService = {
           }
         }
       });
+      
+      if (enrollment) {
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+        if (isFree) {
+          sendMail({
+            to: enrollment[0].studentEmail,
+            subject: `🎉 Yêu cầu đăng ký được phê duyệt`,
+            html: enrollmentApprovedTemplate(enrollment[0].studentName, course.title, `${frontendUrl}/login`)
+          });
+        } else {
+          sendMail({
+            to: enrollment[0].studentEmail,
+            subject: `📄 Xác nhận yêu cầu đăng ký khóa học`,
+            html: enrollmentRequestTemplate(enrollment[0].studentName, course.title, amount)
+          });
+        }
+      }
+
       return enrollment ? enrollment[0] : null;
     } finally {
       await session.endSession();
@@ -119,7 +149,9 @@ export const enrollmentService = {
   async adminUpdateEnrollment(id: string, paymentStatus: string) {
     const session = await mongoose.startSession();
     try {
-      let enrollment;
+      let enrollment: any;
+      let course: any;
+      let shouldSendEmail = false;
       await session.withTransaction(async () => {
         enrollment = await EnrollmentModel.findById(id).session(session);
         if (!enrollment) {
@@ -128,12 +160,15 @@ export const enrollmentService = {
           throw err;
         }
 
+        course = await CourseModel.findById(enrollment.courseId).select('title').session(session).lean();
+
         const wasPaid = enrollment.paymentStatus === 'paid';
         const nowPaid = paymentStatus === 'paid';
         enrollment.paymentStatus = paymentStatus as any;
         await enrollment.save({ session });
 
         if (!wasPaid && nowPaid) {
+          shouldSendEmail = true;
           await CourseModel.updateOne({ _id: enrollment.courseId }, { $inc: { enrollmentCount: 1 } }, { session });
           await StudentModel.updateOne(
             { email: enrollment.studentEmail },
@@ -153,6 +188,16 @@ export const enrollmentService = {
           invalidateAdminStatsCache();
         }
       });
+
+      if (shouldSendEmail && enrollment && course) {
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+        sendMail({
+          to: enrollment.studentEmail,
+          subject: `🎉 Yêu cầu đăng ký được phê duyệt`,
+          html: enrollmentApprovedTemplate(enrollment.studentName, course.title, `${frontendUrl}/login`)
+        });
+      }
+
       return enrollment;
     } finally {
       await session.endSession();

@@ -145,13 +145,11 @@ const CoursesSection: React.FC = () => {
               <button
                 key={i}
                 onClick={() => fetchCourses(i + 1, activeCategory, search)}
-                className="w-10 h-10 rounded-lg text-sm font-semibold transition-all cursor-pointer border"
-                style={{
-                  background:  page === i + 1 ? 'rgba(59,130,246,0.25)' : 'rgba(15,23,42,0.6)',
-                  borderColor: page === i + 1 ? 'rgba(59,130,246,0.6)' : 'rgba(59,130,246,0.15)',
-                  color:       page === i + 1 ? '#60a5fa' : '#64748b',
-                  boxShadow:   page === i + 1 ? '0 0 12px rgba(59,130,246,0.2)' : 'none',
-                }}
+                className={`w-10 h-10 rounded-lg text-sm font-semibold transition-all cursor-pointer border ${
+                  page === i + 1
+                    ? 'bg-blue-100 border-blue-400 text-blue-600 dark:bg-[rgba(59,130,246,0.25)] dark:border-[rgba(59,130,246,0.6)] dark:text-blue-400'
+                    : 'bg-white border-slate-200 text-slate-600 dark:bg-[rgba(15,23,42,0.6)] dark:border-[rgba(59,130,246,0.15)] dark:text-slate-400'
+                }`}
               >
                 {i + 1}
               </button>

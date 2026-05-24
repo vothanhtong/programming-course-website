@@ -106,9 +106,9 @@ const CourseDetail: React.FC = () => {
   const totalDuration    = lessons.reduce((s, l) => s + l.duration, 0);
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col w-full">
       <Navbar />
-      <main className="flex-1 w-full pt-16 overflow-x-hidden lg:pb-0 pb-20">
+      <main className="flex-grow w-full pt-16 overflow-x-hidden lg:pb-0 pb-20">
         <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-12">
           <div className="container">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
@@ -229,7 +229,7 @@ const CourseDetail: React.FC = () => {
       </main>
       <Footer />
       {enrollOpen && <EnrollModal open={enrollOpen} onClose={() => setEnrollOpen(false)} course={course} />}
-    </>
+    </div>
   );
 };
 

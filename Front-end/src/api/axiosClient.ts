@@ -19,6 +19,12 @@ axiosClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Khi gửi FormData (upload file), xóa Content-Type để browser
+  // tự đặt multipart/form-data với boundary đúng — KHÔNG được set tay
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
   
   // Prevent GET request caching by browser
   if (config.method === 'get') {

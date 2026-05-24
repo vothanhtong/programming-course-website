@@ -12,6 +12,8 @@
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
+    "allowJs": true,
+    "noImplicitAny": false,
     "types": ["node"]
   },
   "include": ["src/**/*"],

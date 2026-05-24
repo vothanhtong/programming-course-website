@@ -2,6 +2,8 @@ import { Router } from 'express';
 import * as authController from '../controllers/auth.controller';
 import { studentAuthentication } from '../middlewares/studentAuth.middleware';
 import rateLimit from 'express-rate-limit';
+import { validate } from '../middlewares/validate';
+import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '../validators/auth.validator';
 
 const router = Router();
 
@@ -20,10 +22,10 @@ const resetPasswordLimiter = rateLimit({
 });
 
 // Public
-router.post('/register',        authLimiter,           authController.register);
-router.post('/login',           authLimiter,           authController.login);
-router.post('/forgot-password', authLimiter,           authController.forgotPassword);
-router.post('/reset-password',  resetPasswordLimiter,  authController.resetPassword);
+router.post('/register',        authLimiter,           validate(registerSchema),       authController.register);
+router.post('/login',           authLimiter,           validate(loginSchema),          authController.login);
+router.post('/forgot-password', authLimiter,           validate(forgotPasswordSchema), authController.forgotPassword);
+router.post('/reset-password',  resetPasswordLimiter,  validate(resetPasswordSchema),  authController.resetPassword);
 
 // Protected
 router.get ('/me',              studentAuthentication, authController.getMe);

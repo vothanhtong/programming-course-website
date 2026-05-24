@@ -5,9 +5,7 @@ const uploadApi = {
   uploadImage: (file: File): Promise<{ url: string }> => {
     const formData = new FormData();
     formData.append('image', file);
-    return axiosClient.post(API_ROUTES.UPLOAD.IMAGE, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return axiosClient.post(API_ROUTES.UPLOAD.IMAGE, formData);
   },
 
   deleteImage: (filename: string): Promise<{ message: string }> =>
@@ -15,18 +13,14 @@ const uploadApi = {
 
   uploadStudentAvatar: (file: File): Promise<{ url: string }> => {
     const formData = new FormData();
-    formData.append('image', file);
-    return axiosClient.post(API_ROUTES.UPLOAD.STUDENT_AVATAR, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    formData.append('avatar', file);
+    return axiosClient.post(API_ROUTES.UPLOAD.STUDENT_AVATAR, formData);
   },
 
   uploadAdminAvatar: (file: File): Promise<{ url: string }> => {
     const formData = new FormData();
-    formData.append('image', file);
-    return axiosClient.post(API_ROUTES.UPLOAD.ADMIN_AVATAR, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    formData.append('avatar', file);
+    return axiosClient.post(API_ROUTES.UPLOAD.ADMIN_AVATAR, formData);
   }
 };
 

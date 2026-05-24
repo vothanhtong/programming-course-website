@@ -7,7 +7,7 @@ import {
   UsergroupAddOutlined, SettingOutlined, MessageOutlined, CheckSquareOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAdminStore } from '../../../store/useAdminStore';
 
 const { Sider, Content } = Layout;
 
@@ -66,7 +66,7 @@ const AdminLayout = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate  = useNavigate();
   const location  = useLocation();
-  const { admin, logout } = useAuth();
+  const { admin, logout  } = useAdminStore();
 
   useEffect(() => {
     const mql = window.matchMedia('(max-width: 992px)');

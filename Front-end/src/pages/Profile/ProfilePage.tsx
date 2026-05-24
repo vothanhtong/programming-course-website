@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuthStore } from '../../store/useAuthStore';
 import authApi from '../../api/authApi';
 import { messageService } from '../../services/messageService';
 import ImageUploader from '../../components/ui/ImageUploader/ImageUploader';
@@ -44,7 +44,7 @@ const Alert: React.FC<{ msg: string }> = ({ msg }) => {
 };
 
 const ProfilePage: React.FC = () => {
-  const { student, loading, logout, updateProfile } = useAuth();
+  const { student, loading, logout, updateProfile  } = useAuthStore();
   const navigate = useNavigate();
 
   // ── All hooks must be declared before any early return ──
@@ -196,10 +196,9 @@ const ProfilePage: React.FC = () => {
   ];
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col w-full overflow-x-hidden bg-slate-900" style={{ background: 'linear-gradient(135deg, #020817 0%, #0f172a 60%, #0d1526 100%)' }}>
       <Navbar />
-      <main className="w-full min-h-screen pt-24 pb-16 overflow-x-hidden"
-        style={{ background: 'linear-gradient(135deg, #020817 0%, #0f172a 60%, #0d1526 100%)' }}>
+      <main className="flex-grow w-full pt-24 pb-16 relative">
         <div className="fixed inset-0 pointer-events-none" style={{
           backgroundImage: 'linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px)',
           backgroundSize: '40px 40px',
@@ -469,7 +468,7 @@ const ProfilePage: React.FC = () => {
         </div>
       </main>
       <Footer />
-    </>
+    </div>
   );
 };
 

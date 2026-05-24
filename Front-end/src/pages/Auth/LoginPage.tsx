@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuthStore } from '../../store/useAuthStore';
 import AuthLayout from '../../components/ui/Auth/AuthLayout';
 import AuthInput from '../../components/ui/Auth/AuthInput';
 
 const LoginPage: React.FC = () => {
-  const { login }  = useAuth();
-  const navigate   = useNavigate();
-  const location   = useLocation();
-  const from       = (location.state as any)?.from || '/';
+  const { login } = useAuthStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as any)?.from || '/';
 
-  const [form, setForm]       = useState({ email: '', password: '' });
-  const [error, setError]     = useState('');
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPw, setShowPw]   = useState(false);
+  const [showPw, setShowPw] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,8 +57,11 @@ const LoginPage: React.FC = () => {
           }
         />
 
-        <div className="text-right">
-          <Link to="/forgot-password" className="text-sm no-underline" style={{ color: '#60a5fa' }}>
+        <div className="flex justify-between items-center text-sm">
+          <Link to="/admin/login" className="no-underline text-gray-500 hover:text-gray-700 transition-colors">
+            Đăng nhập Quản trị viên
+          </Link>
+          <Link to="/forgot-password" className="no-underline" style={{ color: '#60a5fa' }}>
             Quên mật khẩu?
           </Link>
         </div>

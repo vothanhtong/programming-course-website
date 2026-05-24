@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { message } from 'antd';
 import { UserOutlined, LockOutlined, SaveOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
-import { useAuth } from '../context/AuthContext';
+import { useAdminStore } from '../../store/useAdminStore';
 import adminApi from '../api/adminApi';
 import ImageUploader from '../../components/ui/ImageUploader/ImageUploader';
 
@@ -77,7 +77,7 @@ const DarkPasswordInput = ({ value, onChange, placeholder }) => {
 
 // ── Main component ────────────────────────────────────────
 const AdminProfile = () => {
-  const { admin, updateProfile } = useAuth();
+  const { admin, updateProfile  } = useAdminStore();
 
   const [tab, setTab] = useState('profile');
 

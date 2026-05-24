@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import quizApi from '../../../api/quizApi';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 
 interface QuizTabProps {
   courseId: string;
@@ -10,7 +10,7 @@ const QuizTab: React.FC<QuizTabProps> = ({ courseId }) => {
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { student } = useAuth();
+  const { student  } = useAuthStore();
   
   const [activeQuiz, setActiveQuiz] = useState<any | null>(null);
   const [answers, setAnswers] = useState<number[]>([]);
@@ -28,7 +28,7 @@ const QuizTab: React.FC<QuizTabProps> = ({ courseId }) => {
       setQuizzes(resQuizzes.quizzes || []);
       
       if (student) {
-        const resHistory = await quizApi.getQuizHistory(courseId);
+        const resHistory = await quizApi.getStudentQuizHistory(courseId);
         setHistory(resHistory.history || []);
       }
     } catch (err) {
@@ -44,7 +44,7 @@ const QuizTab: React.FC<QuizTabProps> = ({ courseId }) => {
       return;
     }
     try {
-      const res = await quizApi.getQuizDetail(quizId);
+      const res = await quizApi.getQuizForStudent(quizId);
       setActiveQuiz(res.quiz);
       setAnswers(new Array(res.quiz.questions.length).fill(-1));
       setResult(null);

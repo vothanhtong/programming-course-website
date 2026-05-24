@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import Logo from './Logo';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 // navLinks will be defined inside the component to use translations
 const Navbar: React.FC = () => {
-  const { student, logout } = useAuth();
+  const { student, logout  } = useAuthStore();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { theme, toggleTheme } = useTheme();
@@ -53,19 +53,27 @@ const Navbar: React.FC = () => {
     navigate('/');
   }, [logout, navigate]);
 
+  const isDark = theme === 'dark';
+
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'py-3' : 'py-4'}`}
       style={{
-        background: scrolled ? 'rgba(9,15,29,0.92)' : 'transparent',
+        background: scrolled
+          ? isDark ? 'rgba(9,15,29,0.92)' : 'rgba(255,255,255,0.92)'
+          : 'transparent',
         backdropFilter: scrolled ? 'blur(16px)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(59,130,246,0.15)' : 'none',
-        boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.4)' : 'none',
+        borderBottom: scrolled
+          ? isDark ? '1px solid rgba(59,130,246,0.15)' : '1px solid rgba(226,232,240,0.8)'
+          : 'none',
+        boxShadow: scrolled
+          ? isDark ? '0 4px 24px rgba(0,0,0,0.4)' : '0 4px 24px rgba(0,0,0,0.08)'
+          : 'none',
       }}
     >
       <div className="container flex items-center gap-4 md:gap-8">
         <a href="/" aria-label="Khóa Lập Trình" className="flex-shrink-0">
-          <Logo variant="light" size="sm" />
+          <Logo variant={isDark ? 'light' : 'dark'} size="sm" />
         </a>
 
         {/* Desktop nav */}
@@ -75,9 +83,9 @@ const Navbar: React.FC = () => {
               <button
                 onClick={() => scrollTo(link.id)}
                 className="bg-transparent border-none px-4 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all"
-                style={{ color: '#94a3b8' }}
+                style={{ color: isDark ? '#94a3b8' : '#475569' }}
                 onMouseEnter={e => { (e.currentTarget).style.color = '#60a5fa'; (e.currentTarget).style.background = 'rgba(59,130,246,0.08)'; }}
-                onMouseLeave={e => { (e.currentTarget).style.color = '#94a3b8'; (e.currentTarget).style.background = 'transparent'; }}
+                onMouseLeave={e => { (e.currentTarget).style.color = isDark ? '#94a3b8' : '#475569'; (e.currentTarget).style.background = 'transparent'; }}
               >
                 {link.label}
               </button>
@@ -95,7 +103,7 @@ const Navbar: React.FC = () => {
                 style={{
                   background: 'rgba(59,130,246,0.1)',
                   border: '1px solid rgba(59,130,246,0.25)',
-                  color: '#e2e8f0',
+                  color: isDark ? '#e2e8f0' : '#1e293b',
                 }}
               >
                 <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-xs font-bold overflow-hidden flex-shrink-0">
@@ -111,35 +119,35 @@ const Navbar: React.FC = () => {
                 <div
                   className="absolute right-0 top-full mt-2 w-48 rounded-xl overflow-hidden"
                   style={{
-                    background: 'rgba(9,15,29,0.97)',
-                    border: '1px solid rgba(59,130,246,0.2)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                    background: isDark ? 'rgba(9,15,29,0.97)' : 'rgba(255,255,255,0.98)',
+                    border: isDark ? '1px solid rgba(59,130,246,0.2)' : '1px solid rgba(226,232,240,0.8)',
+                    boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.4)' : '0 8px 32px rgba(0,0,0,0.12)',
                   }}
                 >
                   <button
                     onClick={() => { navigate('/profile'); setUserMenuOpen(false); }}
                     className="w-full flex items-center gap-2.5 px-4 py-3 text-sm bg-transparent border-none cursor-pointer transition-all text-left"
-                    style={{ color: '#94a3b8' }}
-                    onMouseEnter={e => { (e.currentTarget).style.background = 'rgba(59,130,246,0.1)'; (e.currentTarget).style.color = '#e2e8f0'; }}
-                    onMouseLeave={e => { (e.currentTarget).style.background = 'transparent'; (e.currentTarget).style.color = '#94a3b8'; }}
+                    style={{ color: isDark ? '#94a3b8' : '#475569' }}
+                    onMouseEnter={e => { (e.currentTarget).style.background = 'rgba(59,130,246,0.1)'; (e.currentTarget).style.color = isDark ? '#e2e8f0' : '#1e293b'; }}
+                    onMouseLeave={e => { (e.currentTarget).style.background = 'transparent'; (e.currentTarget).style.color = isDark ? '#94a3b8' : '#475569'; }}
                   >
                     👤 Hồ sơ của tôi
                   </button>
                   <button
                     onClick={() => { navigate('/dashboard'); setUserMenuOpen(false); }}
                     className="w-full flex items-center gap-2.5 px-4 py-3 text-sm bg-transparent border-none cursor-pointer transition-all text-left"
-                    style={{ color: '#94a3b8' }}
-                    onMouseEnter={e => { (e.currentTarget).style.background = 'rgba(59,130,246,0.1)'; (e.currentTarget).style.color = '#e2e8f0'; }}
-                    onMouseLeave={e => { (e.currentTarget).style.background = 'transparent'; (e.currentTarget).style.color = '#94a3b8'; }}
+                    style={{ color: isDark ? '#94a3b8' : '#475569' }}
+                    onMouseEnter={e => { (e.currentTarget).style.background = 'rgba(59,130,246,0.1)'; (e.currentTarget).style.color = isDark ? '#e2e8f0' : '#1e293b'; }}
+                    onMouseLeave={e => { (e.currentTarget).style.background = 'transparent'; (e.currentTarget).style.color = isDark ? '#94a3b8' : '#475569'; }}
                   >
                     📊 Dashboard
                   </button>
                   <button
                     onClick={() => { navigate('/my-courses'); setUserMenuOpen(false); }}
                     className="w-full flex items-center gap-2.5 px-4 py-3 text-sm bg-transparent border-none cursor-pointer transition-all text-left"
-                    style={{ color: '#94a3b8' }}
-                    onMouseEnter={e => { (e.currentTarget).style.background = 'rgba(59,130,246,0.1)'; (e.currentTarget).style.color = '#e2e8f0'; }}
-                    onMouseLeave={e => { (e.currentTarget).style.background = 'transparent'; (e.currentTarget).style.color = '#94a3b8'; }}
+                    style={{ color: isDark ? '#94a3b8' : '#475569' }}
+                    onMouseEnter={e => { (e.currentTarget).style.background = 'rgba(59,130,246,0.1)'; (e.currentTarget).style.color = isDark ? '#e2e8f0' : '#1e293b'; }}
+                    onMouseLeave={e => { (e.currentTarget).style.background = 'transparent'; (e.currentTarget).style.color = isDark ? '#94a3b8' : '#475569'; }}
                   >
                     📚 Khóa học của tôi
                   </button>
@@ -161,9 +169,9 @@ const Navbar: React.FC = () => {
               <button
                 onClick={() => navigate('/login')}
                 className="px-4 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all bg-transparent border-none"
-                style={{ color: '#94a3b8' }}
+                style={{ color: isDark ? '#94a3b8' : '#475569' }}
                 onMouseEnter={e => { (e.currentTarget).style.color = '#60a5fa'; }}
-                onMouseLeave={e => { (e.currentTarget).style.color = '#94a3b8'; }}
+                onMouseLeave={e => { (e.currentTarget).style.color = isDark ? '#94a3b8' : '#475569'; }}
               >
                 {t('nav.login')}
               </button>
@@ -233,14 +241,17 @@ const Navbar: React.FC = () => {
       {menuOpen && (
         <div
           className="md:hidden px-6 pb-6 flex flex-col gap-2 mt-2"
-          style={{ background: 'rgba(9,15,29,0.97)', borderTop: '1px solid rgba(59,130,246,0.15)' }}
+          style={{
+            background: isDark ? 'rgba(9,15,29,0.97)' : 'rgba(255,255,255,0.97)',
+            borderTop: isDark ? '1px solid rgba(59,130,246,0.15)' : '1px solid rgba(226,232,240,0.8)',
+          }}
         >
           {navLinks.map((link) => (
             <button
               key={link.id}
               onClick={() => scrollTo(link.id)}
               className="bg-transparent border-none px-4 py-3 text-base font-medium text-left rounded-lg cursor-pointer"
-              style={{ color: '#94a3b8' }}
+              style={{ color: isDark ? '#94a3b8' : '#475569' }}
             >
               {link.label}
             </button>

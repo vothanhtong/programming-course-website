@@ -2,7 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, Spin } from 'antd';
 import viVN from 'antd/locale/vi_VN';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { useAdminStore } from '../store/useAdminStore';
 import { darkTheme } from './theme';
 import AdminLayout from './components/Layout/AdminLayout';
 
@@ -29,14 +29,19 @@ const PageLoader = () => (
 );
 
 const ProtectedRoute = ({ children }) => {
-  const { admin, loading } = useAuth();
+  const { admin, loading } = useAdminStore();
   if (loading) return <PageLoader />;
   if (!admin) return <Navigate to="/admin/login" replace />;
   return children;
 };
 
 const AppRoutes = () => {
-  const { admin } = useAuth();
+  const { admin, checkAuth } = useAdminStore();
+
+  React.useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
@@ -66,9 +71,7 @@ const AppRoutes = () => {
 };
 const App = () => (
   <ConfigProvider locale={viVN} theme={darkTheme}>
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
+    <AppRoutes />
   </ConfigProvider>
 );
 

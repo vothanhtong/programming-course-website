@@ -4,7 +4,7 @@ import Navbar from '../../components/layout/Navbar/Navbar';
 import Footer from '../../components/layout/Footer/Footer';
 import StatCardSkeleton from '../../components/common/Skeleton/StatCardSkeleton';
 import progressApi from '../../api/progressApi';
-import { useAuth } from '../../context/AuthContext';
+import { useAuthStore } from '../../store/useAuthStore';
 import type { LearningStats } from '../../api/progressApi';
 
 const StatCard: React.FC<{
@@ -24,7 +24,7 @@ const StatCard: React.FC<{
 
 const StudentDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { student, loading: authLoading } = useAuth();
+  const { student, loading: authLoading  } = useAuthStore();
   const [stats, setStats] = useState<LearningStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -60,10 +60,10 @@ const StudentDashboard: React.FC = () => {
   }, [student]);
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-slate-900 to-slate-800">
+    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-slate-900 to-slate-800 flex flex-col">
       <Navbar />
 
-      <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 mt-16 sm:mt-20 pb-16">
+      <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 mt-16 sm:mt-20 pb-16">
         {/* Header */}
         <div className="mb-12">
           <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Dashboard Học Tập</h1>

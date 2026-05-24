@@ -1,7 +1,9 @@
 import rateLimit from 'express-rate-limit';
 
+const isProd = process.env.NODE_ENV === 'production';
+
 export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, max: 10,
+  windowMs: 15 * 60 * 1000, max: isProd ? 10 : 1000,
   message: { message: 'Quá nhiều lần thử đăng nhập. Thử lại sau 15 phút.' },
   standardHeaders: 'draft-7', legacyHeaders: false, skipSuccessfulRequests: true,
 });

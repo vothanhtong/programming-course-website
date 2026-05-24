@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import courseApi from '../../../api/courseApi';
-import { useAuth } from '../../../context/AuthContext';
+import api from '../../../api/axiosClient';
+import { useAuthStore } from '../../../store/useAuthStore';
 import type { Course, EnrollFormData } from '../../../types';
 
 interface Props { open: boolean; onClose: () => void; course: Course; }
@@ -11,7 +13,7 @@ const initialForm: EnrollFormData = {
 };
 
 const EnrollModal: React.FC<Props> = ({ open, onClose, course }) => {
-  const { student } = useAuth();
+  const { student  } = useAuthStore();
   const [form, setForm]       = useState<EnrollFormData>({ ...initialForm, courseId: course._id });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -49,11 +51,22 @@ const EnrollModal: React.FC<Props> = ({ open, onClose, course }) => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.studentEmail)) return setError('Email không hợp lệ');
     setLoading(true);
     try {
-      await courseApi.enroll(form);
+      const res = await courseApi.enroll(form);
+      
+      // Nếu có phí, khởi tạo phiên thanh toán giả lập và redirect
+      if (!course.isFree && res.enrollmentId) {
+        const payRes = await api.post<{paymentUrl: string}>('/apis/payment/create-url', { enrollmentId: res.enrollmentId });
+        if (payRes && payRes.paymentUrl) {
+          window.location.href = payRes.paymentUrl;
+          return; // Dừng lại chờ chuyển trang
+        }
+      }
+      
       setSuccess(true);
     } catch (err: any) {
       setError(err?.message || 'Đăng ký thất bại, vui lòng thử lại');
-    } finally { setLoading(false); }
+      setLoading(false); 
+    }
   };
 
   const handleClose = () => {
@@ -65,7 +78,7 @@ const EnrollModal: React.FC<Props> = ({ open, onClose, course }) => {
     onClose();
   };
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 sm:p-5"
       style={{ background: 'rgba(2,8,23,0.85)', backdropFilter: 'blur(8px)' }}
       onClick={handleClose}>
@@ -198,6 +211,8 @@ const EnrollModal: React.FC<Props> = ({ open, onClose, course }) => {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default EnrollModal;
