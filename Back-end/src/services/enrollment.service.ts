@@ -1,11 +1,12 @@
 import EnrollmentModel from '../models/course.models/enrollment.model';
 import CourseModel from '../models/course.models/course.model';
 import StudentModel from '../models/student.model';
-import { initializeProgressForEnrollment } from '../controllers/progress.controller';
+import { initializeProgressForEnrollment } from './progress.service';
 import { sendMail, enrollmentRequestTemplate, enrollmentApprovedTemplate } from '../utils/mailer';
 import { isValidId } from '../utils/validators';
 import { invalidateAdminStatsCache } from '../utils/cache';
 import mongoose from 'mongoose';
+import logger from '../config/logger';
 
 export const enrollmentService = {
   async postEnroll(data: any, studentId?: string) {
@@ -83,18 +84,19 @@ export const enrollmentService = {
       
       if (enrollment) {
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+        // BUG-21 FIX: Thêm .catch() để log lỗi email thay vì im lặng
         if (isFree) {
           sendMail({
             to: enrollment[0].studentEmail,
             subject: `🎉 Yêu cầu đăng ký được phê duyệt`,
             html: enrollmentApprovedTemplate(enrollment[0].studentName, course.title, `${frontendUrl}/login`)
-          });
+          }).catch((err: Error) => logger.error('Email send failed (free enroll):', { error: err.message, to: enrollment[0].studentEmail }));
         } else {
           sendMail({
             to: enrollment[0].studentEmail,
             subject: `📄 Xác nhận yêu cầu đăng ký khóa học`,
             html: enrollmentRequestTemplate(enrollment[0].studentName, course.title, amount)
-          });
+          }).catch((err: Error) => logger.error('Email send failed (pending enroll):', { error: err.message, to: enrollment[0].studentEmail }));
         }
       }
 
@@ -195,7 +197,7 @@ export const enrollmentService = {
           to: enrollment.studentEmail,
           subject: `🎉 Yêu cầu đăng ký được phê duyệt`,
           html: enrollmentApprovedTemplate(enrollment.studentName, course.title, `${frontendUrl}/login`)
-        });
+        }).catch((err: Error) => logger.error('Email send failed (admin approve):', { error: err.message, to: enrollment.studentEmail }));
       }
 
       return enrollment;

@@ -3,8 +3,27 @@ import { getAdminId } from '../types';
 import { EMAIL_REGEX, isValidId, getParam, isValidAvatarUrl, sanitizeStr } from '../utils/validators';
 import { adminService } from '../services/admin.service';
 import { studentService } from '../services/student.service';
+import { verifyRefreshToken, signAdminToken } from '../config/jwt.config';
+import AdminModel from '../models/account.models/admin.model';
 
 const isProd = process.env.NODE_ENV === 'production';
+
+const setAdminRefreshTokenCookie = (res: Response, token: string) => {
+  res.cookie('adminRefreshToken', token, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  });
+};
+
+const clearAdminRefreshTokenCookie = (res: Response) => {
+  res.clearCookie('adminRefreshToken', {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: 'strict',
+  });
+};
 
 // ── AUTH ──────────────────────────────────────────────────
 
@@ -15,14 +34,53 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
       res.status(400).json({ message: 'Vui lòng nhập tài khoản và mật khẩu' }); return;
     }
 
-    const result = await adminService.login({ userName: userName.trim(), password });
+    const { refreshToken, ...result } = await adminService.login({ userName: userName.trim(), password });
+    
+    setAdminRefreshTokenCookie(res, refreshToken);
+    
     res.json(result);
   } catch (err) { next(err); }
 };
 
 export const postLogout = (_req: Request, res: Response): void => {
-  res.clearCookie('admin_token');
+  clearAdminRefreshTokenCookie(res);
   res.json({ message: 'Đăng xuất thành công' });
+};
+
+export const postRefresh = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const refreshToken = req.cookies?.adminRefreshToken;
+    if (!refreshToken) {
+      res.status(401).json({ message: 'Refresh token không tồn tại' });
+      return;
+    }
+
+    let decoded: any;
+    try {
+      decoded = verifyRefreshToken(refreshToken, 'admin');
+    } catch (err) {
+      clearAdminRefreshTokenCookie(res);
+      res.status(401).json({ message: 'Refresh token không hợp lệ hoặc đã hết hạn' });
+      return;
+    }
+
+    const adminId = decoded.sub?.adminId;
+    if (!adminId) {
+      clearAdminRefreshTokenCookie(res);
+      res.status(401).json({ message: 'Token payload không hợp lệ' });
+      return;
+    }
+
+    const admin = await AdminModel.findById(adminId).lean();
+    if (!admin) {
+      clearAdminRefreshTokenCookie(res);
+      res.status(401).json({ message: 'Tài khoản không tồn tại' });
+      return;
+    }
+
+    const newToken = signAdminToken(adminId);
+    res.json({ token: newToken });
+  } catch (err) { next(err); }
 };
 
 // ── ADMIN PROFILE ─────────────────────────────────────────

@@ -2,6 +2,8 @@ export const API_ROUTES = {
   AUTH: {
     REGISTER: '/apis/auth/register',
     LOGIN: '/apis/auth/login',
+    LOGOUT: '/apis/auth/logout',
+    REFRESH: '/apis/auth/refresh',
     ME: '/apis/auth/me',
     PROFILE: '/apis/auth/profile',
     CHANGE_PASSWORD: '/apis/auth/change-password',
@@ -44,6 +46,7 @@ export const ADMIN_API_ROUTES = {
   BASE: '/apis/admin',
   LOGIN: '/apis/admin/login',
   LOGOUT: '/apis/admin/logout',
+  REFRESH: '/apis/admin/refresh',
   PROFILE: '/apis/admin/profile',
   CHANGE_PASSWORD: '/apis/admin/change-password',
   STATS: '/apis/admin/stats',

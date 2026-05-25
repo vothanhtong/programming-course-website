@@ -3,6 +3,25 @@ import logger from '../config/logger';
 import { getStudentId } from '../types';
 import { EMAIL_REGEX, isValidAvatarUrl, sanitizeStr } from '../utils/validators';
 import { authService } from '../services/auth.service';
+import { verifyRefreshToken, signStudentToken } from '../config/jwt.config';
+import StudentModel from '../models/student.model';
+
+const setRefreshTokenCookie = (res: Response, token: string) => {
+  res.cookie('refreshToken', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  });
+};
+
+const clearRefreshTokenCookie = (res: Response) => {
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  });
+};
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -21,11 +40,13 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       res.status(400).json({ message: 'Họ tên quá dài' }); return;
     }
 
-    const result = await authService.register({
+    const { refreshToken, ...result } = await authService.register({
       fullName: fullName.trim(),
       email: email.toLowerCase().trim(),
       password
     });
+
+    setRefreshTokenCookie(res, refreshToken);
 
     res.status(201).json({
       message: 'Đăng ký thành công!',
@@ -44,15 +65,60 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       res.status(400).json({ message: 'Vui lòng nhập email và mật khẩu' }); return;
     }
 
-    const result = await authService.login({
+    const { refreshToken, ...result } = await authService.login({
       email: email.toLowerCase().trim(),
       password
     });
+
+    setRefreshTokenCookie(res, refreshToken);
 
     res.json({
       message: 'Đăng nhập thành công!',
       ...result
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const logout = async (req: Request, res: Response): Promise<void> => {
+  clearRefreshTokenCookie(res);
+  res.json({ message: 'Đăng xuất thành công' });
+};
+
+export const refresh = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+      res.status(401).json({ message: 'Refresh token không tồn tại' });
+      return;
+    }
+
+    let decoded: any;
+    try {
+      decoded = verifyRefreshToken(refreshToken, 'student');
+    } catch (err) {
+      clearRefreshTokenCookie(res);
+      res.status(401).json({ message: 'Refresh token không hợp lệ hoặc đã hết hạn' });
+      return;
+    }
+
+    const studentId = decoded.sub?.studentId;
+    if (!studentId) {
+      clearRefreshTokenCookie(res);
+      res.status(401).json({ message: 'Token payload không hợp lệ' });
+      return;
+    }
+
+    const student = await StudentModel.findById(studentId).lean();
+    if (!student) {
+      clearRefreshTokenCookie(res);
+      res.status(401).json({ message: 'Tài khoản không tồn tại' });
+      return;
+    }
+
+    const newToken = signStudentToken(studentId);
+    res.json({ token: newToken });
   } catch (err) {
     next(err);
   }

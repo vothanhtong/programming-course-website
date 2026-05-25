@@ -1,10 +1,11 @@
 import crypto from 'crypto';
 import StudentModel from '../models/student.model';
 import { sendMail, resetPasswordTemplate } from '../utils/mailer';
-import { signStudentToken } from '../config/jwt.config';
+import { signStudentToken, signStudentRefreshToken } from '../config/jwt.config';
 import { sanitizeStr } from '../utils/validators';
 
 const signToken = (studentId: string): string => signStudentToken(studentId);
+const signRefreshToken = (studentId: string): string => signStudentRefreshToken(studentId);
 
 export const authService = {
   async register(data: any) {
@@ -23,16 +24,26 @@ export const authService = {
     });
 
     const token = signToken(student._id.toString());
-    const populated = await StudentModel.findById(student._id)
-      .select('-password -verifyToken -resetToken -verifyTokenExpiry -resetTokenExpiry')
-      .populate('enrolledCourses', 'title slug thumbnail')
-      .lean();
+    
+    // BUG-22 FIX: Dùng StudentModel.populate thay vì findById lần 2 để tiết kiệm 1 query
+    const populated = await StudentModel.populate(student, { 
+      path: 'enrolledCourses', 
+      select: 'title slug thumbnail' 
+    });
 
-    return { token, student: populated };
+    const studentResponse = populated.toObject();
+    delete (studentResponse as any).password;
+    delete (studentResponse as any).verifyToken;
+    delete (studentResponse as any).resetToken;
+    
+    return { token, refreshToken: signRefreshToken(student._id.toString()), student: studentResponse };
   },
 
   async login(data: any) {
-    const student = await StudentModel.findOne({ email: data.email });
+    // BUG-22 FIX: Dùng .populate ngay từ query đầu tiên để tiết kiệm 1 DB query
+    const student = await StudentModel.findOne({ email: data.email })
+      .populate('enrolledCourses', 'title slug thumbnail');
+      
     if (!student) {
       const err: any = new Error('Email hoặc mật khẩu không đúng');
       err.status = 401;
@@ -47,12 +58,14 @@ export const authService = {
     }
 
     const token = signToken(student._id.toString());
-    const populated = await StudentModel.findById(student._id)
-      .select('-password -verifyToken -resetToken -verifyTokenExpiry -resetTokenExpiry')
-      .populate('enrolledCourses', 'title slug thumbnail')
-      .lean();
+    const refreshToken = signRefreshToken(student._id.toString());
+    
+    const studentResponse = student.toObject();
+    delete (studentResponse as any).password;
+    delete (studentResponse as any).verifyToken;
+    delete (studentResponse as any).resetToken;
 
-    return { token, student: populated };
+    return { token, refreshToken, student: studentResponse };
   },
 
   async getMe(studentId: string) {

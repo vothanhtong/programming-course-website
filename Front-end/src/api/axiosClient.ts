@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { STORAGE_KEYS } from '../constants/storageKeys';
+import { API_ROUTES } from '../constants/apiRoutes';
 
 // Dùng relative URL để webpack proxy tự forward /apis → localhost:5001
 // Tránh CORS và network error khi gọi trực tiếp cross-origin
@@ -11,13 +11,21 @@ const axiosClient = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 15000,
+  withCredentials: true,
 });
+
+let accessToken: string | null = null;
+
+export const setAccessToken = (token: string | null) => {
+  accessToken = token;
+};
+
+export const getAccessToken = () => accessToken;
 
 // Attach student token on every request
 axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem(STORAGE_KEYS.STUDENT_TOKEN);
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
   }
 
   // Khi gửi FormData (upload file), xóa Content-Type để browser
@@ -25,35 +33,56 @@ axiosClient.interceptors.request.use((config) => {
   if (config.data instanceof FormData) {
     delete config.headers['Content-Type'];
   }
-  
-  // Prevent GET request caching by browser
-  if (config.method === 'get') {
-    config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
-    config.headers['Pragma'] = 'no-cache';
-    config.headers['Expires'] = '0';
-  }
-  
+
   return config;
 });
 
 axiosClient.interceptors.response.use(
   (response) => response.data,
-  (error) => {
+  async (error) => {
     if (!error.response) {
       // Network error — backend chưa chạy hoặc mất kết nối
       return Promise.reject({ message: 'Không thể kết nối đến server. Vui lòng thử lại.' });
     }
 
-    // ⚡ REFACTOR: Centralized 401 handling
-    // Automatically redirect to login on unauthorized access
-    if (error.response.status === 401) {
-      // Clear invalid token
-      localStorage.removeItem(STORAGE_KEYS.STUDENT_TOKEN);
-      
-      // Redirect to login with return URL
+    const originalRequest = error.config;
+
+    if (error.response.status === 401 && originalRequest.url !== API_ROUTES.AUTH.REFRESH) {
+      if (!originalRequest._retry) {
+        originalRequest._retry = true;
+        try {
+          const res = await axiosClient.post(API_ROUTES.AUTH.REFRESH) as any;
+          setAccessToken(res.token);
+          originalRequest.headers.Authorization = `Bearer ${res.token}`;
+          return axiosClient(originalRequest);
+        } catch (refreshError) {
+          setAccessToken(null);
+          const currentPath = window.location.pathname;
+          if (currentPath !== '/login' && currentPath !== '/register') {
+            window.dispatchEvent(
+              new CustomEvent('auth:unauthorized', {
+                detail: { redirectTo: `/login?redirect=${encodeURIComponent(currentPath)}` },
+              })
+            );
+          }
+          return Promise.reject(refreshError);
+        }
+      }
+    }
+
+    // BUG-13 FIX: Thay window.location.href (hard reload) bằng CustomEvent
+    // App.tsx lắng nghe event này và dùng React Router navigate() để redirect
+    // → Giữ nguyên SPA experience, không mất React state
+    if (error.response.status === 401 && originalRequest.url === API_ROUTES.AUTH.REFRESH) {
+      setAccessToken(null);
+
       const currentPath = window.location.pathname;
       if (currentPath !== '/login' && currentPath !== '/register') {
-        window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+        window.dispatchEvent(
+          new CustomEvent('auth:unauthorized', {
+            detail: { redirectTo: `/login?redirect=${encodeURIComponent(currentPath)}` },
+          })
+        );
       }
     }
 

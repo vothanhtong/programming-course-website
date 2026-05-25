@@ -2,6 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 
 export const sanitizeMiddleware = (req: Request, _res: Response, next: NextFunction) => {
   const sanitize = (obj: unknown): unknown => {
+    // BUG-14 FIX: Xử lý arrays đệ quy trước khi xử lý objects
+    if (Array.isArray(obj)) {
+      return obj.map(sanitize);
+    }
     if (obj && typeof obj === 'object') {
       for (const key of Object.keys(obj as Record<string, unknown>)) {
         if (key.startsWith('$') || key.includes('.')) {

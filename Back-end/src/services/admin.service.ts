@@ -1,5 +1,5 @@
 import AdminModel from '../models/account.models/admin.model';
-import { signAdminToken } from '../config/jwt.config';
+import { signAdminToken, signAdminRefreshToken } from '../config/jwt.config';
 
 export const adminService = {
   async login(data: any) {
@@ -18,8 +18,10 @@ export const adminService = {
     }
 
     const token = signAdminToken(adminUser._id.toString());
+    const refreshToken = signAdminRefreshToken(adminUser._id.toString());
     return {
       token,
+      refreshToken,
       admin: {
         id: adminUser._id,
         userName: adminUser.userName,

@@ -14,6 +14,7 @@ const router = Router();
 
 // ── Public ────────────────────────────────────────────────
 router.post('/login', adminController.postLogin);
+router.post('/refresh', adminController.postRefresh);
 
 // ── Protected (require admin token) ──────────────────────
 router.use(adminAuthentication);

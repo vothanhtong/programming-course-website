@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 import adminAuthApi from '../admin/api/adminApi';
-import { STORAGE_KEYS } from '../constants/storageKeys';
+import { setAdminAccessToken } from '../admin/api/axiosClient';
 
 interface AdminState {
   admin: any | null;
   loading: boolean;
   login: (userName: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
 }
@@ -16,23 +16,18 @@ export const useAdminStore = create<AdminState>((set) => ({
   loading: true,
 
   checkAuth: async () => {
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-    if (!token) {
-      set({ loading: false, admin: null });
-      return;
-    }
     try {
       const res = await adminAuthApi.getProfile() as any;
       set({ admin: res.admin, loading: false });
     } catch {
-      localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
+      setAdminAccessToken(null);
       set({ admin: null, loading: false });
     }
   },
 
   login: async (userName, password) => {
     const res = await adminAuthApi.login({ userName, password }) as any;
-    localStorage.setItem(STORAGE_KEYS.ADMIN_TOKEN, res.token);
+    setAdminAccessToken(res.token);
     set({ admin: res.admin });
   },
 
@@ -40,7 +35,7 @@ export const useAdminStore = create<AdminState>((set) => ({
     try {
       await adminAuthApi.logout();
     } catch (e) {}
-    localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
+    setAdminAccessToken(null);
     set({ admin: null });
   },
 

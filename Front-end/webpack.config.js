@@ -56,7 +56,7 @@ module.exports = (env, argv) => {
     },
     plugins: [
       new CleanWebpackPlugin(),
-      new HtmlWebpackPlugin({ template: './index.html', minify: false }),
+      new HtmlWebpackPlugin({ template: './index.html', minify: isProd }),
       ...(isProd ? [new MiniCssExtractPlugin({ filename: 'style.[contenthash].css' })] : []),
       new Dotenv({ safe: false, silent: true }),
     ],
@@ -85,8 +85,25 @@ module.exports = (env, argv) => {
     },
     optimization: isProd ? {
       splitChunks: {
+        chunks: 'all',
+        maxInitialRequests: 10,
+        maxAsyncRequests: 10,
         cacheGroups: {
-          vendor: { test: /[\\/]node_modules[\\/]/, name: 'vendors', chunks: 'all' },
+          defaultVendors: {
+            test: /[\\/]node_modules[\\/]/,
+            priority: -10,
+            name(module) {
+              const match = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/);
+              if (!match) return 'vendors';
+              const packageName = match[1];
+              return `npm.${packageName.replace('@', '')}`;
+            },
+          },
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true,
+          },
         },
       },
     } : {},

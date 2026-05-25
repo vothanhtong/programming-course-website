@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import FloatingContact from './components/ui/FloatingContact/FloatingContact';
 import { useAuthStore } from './store/useAuthStore';
 
@@ -35,10 +35,22 @@ const PageLoader: React.FC = () => (
 
 const App: React.FC = () => {
   const checkAuth = useAuthStore((state) => state.checkAuth);
+  const navigate = useNavigate();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  // BUG-13 FIX: Lắng nghe CustomEvent 'auth:unauthorized' từ axiosClient
+  // Dùng React Router navigate() thay vì window.location.href — giữ SPA experience
+  useEffect(() => {
+    const handleUnauthorized = (e: Event) => {
+      const detail = (e as CustomEvent<{ redirectTo: string }>).detail;
+      navigate(detail.redirectTo, { replace: true });
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, [navigate]);
 
   return (
     <>

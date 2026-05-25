@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../../store/useAuthStore';
 import Logo from './Logo';
@@ -16,11 +16,12 @@ const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  const navLinks = [
+  // BUG-12 FIX: useMemo tránh tạo lại array navLinks mỗi render
+  const navLinks = useMemo(() => [
     { label: t('nav.courses'), id: 'courses' },
     { label: t('nav.about'),   id: 'about' },
     { label: t('nav.contact'), id: 'contact' },
-  ];
+  ], [t]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);

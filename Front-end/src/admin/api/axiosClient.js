@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { STORAGE_KEYS } from '../../constants/storageKeys';
+import { ADMIN_API_ROUTES } from '../../constants/apiRoutes';
 
 // Dùng relative URL khi ở dev để Webpack proxy tự forward /apis → localhost:5001
 // Khi build production (Vercel), sẽ dùng API_URL
@@ -11,12 +11,20 @@ const axiosClient = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 15000,
+  withCredentials: true,
 });
 
+let adminAccessToken = null;
+
+export const setAdminAccessToken = (token) => {
+  adminAccessToken = token;
+};
+
+export const getAdminAccessToken = () => adminAccessToken;
+
 axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (adminAccessToken) {
+    config.headers.Authorization = `Bearer ${adminAccessToken}`;
   }
 
   // Khi gửi FormData (upload file), xóa Content-Type để browser
@@ -37,19 +45,47 @@ axiosClient.interceptors.request.use((config) => {
 
 axiosClient.interceptors.response.use(
   (response) => response.data,
-  (error) => {
+  async (error) => {
     // Network error hoặc timeout
     if (!error.response) {
       return Promise.reject({ message: 'Không thể kết nối đến server. Vui lòng thử lại.' });
     }
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      // Tránh redirect loop khi đang ở trang login
+
+    const originalRequest = error.config;
+
+    if (error.response.status === 401 && originalRequest.url !== ADMIN_API_ROUTES.REFRESH) {
+      if (!originalRequest._retry) {
+        originalRequest._retry = true;
+        try {
+          const res = await axiosClient.post(ADMIN_API_ROUTES.REFRESH);
+          setAdminAccessToken(res.token);
+          originalRequest.headers.Authorization = `Bearer ${res.token}`;
+          return axiosClient(originalRequest);
+        } catch (refreshError) {
+          setAdminAccessToken(null);
+          if (window.location.pathname !== '/admin/login') {
+            window.location.href = '/admin/login';
+          }
+          return Promise.reject(refreshError);
+        }
+      }
+    }
+
+    if (error.response.status === 401 && originalRequest.url === ADMIN_API_ROUTES.REFRESH) {
+      setAdminAccessToken(null);
       if (window.location.pathname !== '/admin/login') {
-        localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
-        localStorage.removeItem(STORAGE_KEYS.ADMIN_INFO);
         window.location.href = '/admin/login';
       }
     }
+
+    if (error.response?.status === 403) {
+      // Access denied
+      if (window.location.pathname !== '/admin/login') {
+        setAdminAccessToken(null);
+        window.location.href = '/admin/login';
+      }
+    }
+    
     return Promise.reject(error.response?.data || error);
   }
 );

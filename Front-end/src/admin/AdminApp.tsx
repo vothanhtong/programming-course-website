@@ -28,11 +28,12 @@ const PageLoader = () => (
   </div>
 );
 
-const ProtectedRoute = ({ children }) => {
+// BUG-07 FIX: Thêm TypeScript type cho children prop
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { admin, loading } = useAdminStore();
   if (loading) return <PageLoader />;
   if (!admin) return <Navigate to="/admin/login" replace />;
-  return children;
+  return <>{children}</>;
 };
 
 const AppRoutes = () => {

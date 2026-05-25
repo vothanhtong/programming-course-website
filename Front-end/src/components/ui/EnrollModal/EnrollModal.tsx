@@ -55,7 +55,7 @@ const EnrollModal: React.FC<Props> = ({ open, onClose, course }) => {
       
       // Nếu có phí, khởi tạo phiên thanh toán giả lập và redirect
       if (!course.isFree && res.enrollmentId) {
-        const payRes = await api.post<{paymentUrl: string}>('/apis/payment/create-url', { enrollmentId: res.enrollmentId });
+        const payRes = await api.post('/apis/payment/create-url', { enrollmentId: res.enrollmentId }) as any;
         if (payRes && payRes.paymentUrl) {
           window.location.href = payRes.paymentUrl;
           return; // Dừng lại chờ chuyển trang

@@ -48,4 +48,9 @@ studentSchema.methods.comparePassword = function (plain: string): Promise<boolea
   return bcrypt.compare(plain, this.password);
 };
 
+// BUG-10 FIX: Thêm indexes để tăng tốc các query thường dùng
+studentSchema.index({ enrolledCourses: 1 });          // $in, $addToSet, $pull trên enrolledCourses
+studentSchema.index({ createdAt: -1 });               // sort mới nhất trước
+studentSchema.index({ resetToken: 1 }, { sparse: true }); // forgot-password lookup nhanh hơn
+
 export default mongoose.model<IStudent>('student', studentSchema, 'students');

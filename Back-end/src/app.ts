@@ -4,6 +4,7 @@ import morgan from 'morgan';
 import path from 'path';
 import helmet from 'helmet';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import logger from './config/logger';
 import { MAX_SIZE_JSON_REQUEST } from './constants';
 import routes from './routes';
@@ -14,6 +15,7 @@ import { errorHandler } from './middlewares/error';
 const app = express();
 const isProd = process.env.NODE_ENV === 'production';
 
+app.use(cookieParser());
 app.use(compression());
 
 app.use(helmet({

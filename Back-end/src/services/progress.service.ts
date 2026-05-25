@@ -4,6 +4,7 @@ import CourseModel from '../models/course.models/course.model';
 import StudentModel from '../models/student.model';
 import EnrollmentModel from '../models/course.models/enrollment.model';
 import mongoose from 'mongoose';
+import logger from '../config/logger';
 
 export const progressService = {
   async getMyEnrolledCourses(studentId: string) {
@@ -229,6 +230,7 @@ export const initializeProgressForEnrollment = async (
       })),
     }], { session });
   } catch (err) {
-    console.error('[initializeProgressForEnrollment]', err);
+    // BUG-05 FIX: Dùng logger thay console.error để đảm bảo log đến Winston
+    logger.error('[initializeProgressForEnrollment]', { error: err });
   }
 };

@@ -24,6 +24,12 @@ const authApi = {
   login: (data: { email: string; password: string }): Promise<AuthResponse> =>
     axiosClient.post(API_ROUTES.AUTH.LOGIN, data),
 
+  logout: (): Promise<{ message: string }> =>
+    axiosClient.post(API_ROUTES.AUTH.LOGOUT),
+
+  refresh: (): Promise<{ token: string }> =>
+    axiosClient.post(API_ROUTES.AUTH.REFRESH),
+
   getMe: (): Promise<{ student: Student }> =>
     axiosClient.get(API_ROUTES.AUTH.ME),
 
